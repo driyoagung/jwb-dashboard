@@ -2,18 +2,42 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_home_redirects_to_dashboard(): void
     {
-        $response = $this->get('/');
+        $this->get('/')->assertRedirect('/dashboard');
+    }
 
-        $response->assertStatus(200);
+    public function test_kenanga_pages_render_successfully(): void
+    {
+        $paths = [
+            '/dashboard',
+            '/analytics',
+            '/settings',
+            '/components/cards',
+            '/components/tables',
+            '/components/forms',
+            '/components/buttons',
+            '/components/feedback',
+            '/components/navigation',
+            '/login',
+            '/demo/404',
+        ];
+
+        foreach ($paths as $path) {
+            $this->get($path)
+                ->assertOk()
+                ->assertSee('Kenanga', false);
+        }
+    }
+
+    public function test_dashboard_marks_current_navigation_item(): void
+    {
+        $this->get('/dashboard')
+            ->assertOk()
+            ->assertSee('aria-current="page"', false);
     }
 }

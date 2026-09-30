@@ -1,66 +1,89 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Kenanga Admin — Laravel Blade Starter Kit
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Kenanga Admin adalah starter kit dashboard Laravel 12 yang dislicing dari template HTML `kenanga-admin-template`. Seluruh halaman utama sudah memakai Blade layout, Blade components, Vite, Tailwind CSS 4, JavaScript modular, tema terang/gelap, pilihan aksen, dan layout responsif.
 
-## About Laravel
+## Menjalankan proyek
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```bash
+composer install
+npm install
+copy .env.example .env
+php artisan key:generate
+php artisan migrate
+npm run dev
+php artisan serve
+```
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Untuk build produksi:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+npm run build
+php artisan optimize
+```
 
-## Learning Laravel
+## Struktur utama
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- `resources/views/components/layouts` — layout admin, guest, dan blank.
+- `resources/views/components/admin` — sidebar, header, footer, navigasi, dan customizer.
+- `resources/views/components/ui` — komponen UI reusable seperti card, button, field, badge, alert, dan stat card.
+- `resources/views/admin` — dashboard, analitik, dan pengaturan akun.
+- `resources/views/showcase` — katalog komponen untuk referensi saat membangun proyek baru.
+- `resources/js/admin` — grafik SVG dan interaksi dashboard.
+- `resources/css/app.css` — design tokens, tema, dan component styles.
+- `config/kenanga.php` — branding, navigasi, pilihan tema, serta data demo.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Halaman bawaan
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| URL | Route name | Keterangan |
+| --- | --- | --- |
+| `/dashboard` | `admin.dashboard` | Dashboard utama |
+| `/analytics` | `admin.analytics` | Analitik |
+| `/settings` | `admin.settings` | Pengaturan akun |
+| `/components/*` | `showcase.*` | Katalog komponen |
+| `/login` | `login` | Tampilan masuk |
+| `/demo/404` | `demo.404` | Demo halaman 404 |
 
-## Laravel Sponsors
+Halaman login masih berupa presentational UI; hubungkan ke autentikasi Laravel saat dipakai di proyek nyata.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Kustomisasi starter kit
 
-### Premium Partners
+Identitas dasar dapat diubah melalui `.env`:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```dotenv
+ADMIN_NAME="Kenanga Admin"
+ADMIN_BRAND_NAME="Kenanga Admin"
+ADMIN_WORKSPACE="Kopi Kenanga"
+ADMIN_WORKSPACE_DESCRIPTION="Toko online"
+ADMIN_SHOWCASE=true
+```
 
-## Contributing
+Menu sidebar didefinisikan di `config/kenanga.php`. Tambahkan route, view, lalu masukkan item baru ke array `navigation`. Untuk menyembunyikan katalog komponen pada aplikasi produksi, gunakan `ADMIN_SHOWCASE=false`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Contoh halaman baru:
 
-## Code of Conduct
+```blade
+<x-layouts.admin title="Produk" group="Katalog">
+    <x-ui.page-header
+        title="Produk"
+        description="Kelola produk toko Anda."
+    />
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+    <x-ui.card>
+        Konten halaman
+    </x-ui.card>
+</x-layouts.admin>
+```
 
-## Security Vulnerabilities
+## Tema dan preferensi
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Customizer di kanan header mendukung mode sistem/terang/gelap, 12 warna aksen, ukuran radius, serta mode sidebar penuh/mini. Preferensi disimpan di `localStorage`, sehingga tidak memerlukan backend.
 
-## License
+## Validasi
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan test
+php artisan view:cache
+npm run build
+```
+
+Sprite ikon lokal berada di `public/icons.svg`; starter kit tidak bergantung pada CDN untuk ikon maupun font Inter.
