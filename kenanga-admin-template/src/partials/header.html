@@ -1,0 +1,44 @@
+<header class="app-header sticky z-30 flex h-14 items-center gap-2 border-b bg-card px-4">
+  <button id="sidebarToggle" type="button" aria-label="Buka atau tutup sidebar" class="btn btn-ghost btn-icon btn-sm text-muted-foreground">{{> icon name="panel"}}</button>
+  <div class="mx-1 hidden h-4 w-px bg-border sm:block"></div>
+  <nav aria-label="Breadcrumb" class="hidden items-center gap-1.5 text-sm sm:flex">
+    <span id="crumb-group" class="text-muted-foreground">{{group}}</span>
+    {{> icon name="chevron-right" class="h-3.5 w-3.5 text-muted-foreground"}}
+    <span id="crumb-title" class="font-medium">{{title}}</span>
+  </nav>
+
+  <div class="ml-auto flex items-center gap-2">
+    <div class="relative hidden md:block">
+      {{> icon name="search" class="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"}}
+      <input type="search" placeholder="Cari pesanan, produk, pelanggan" aria-label="Cari" class="input w-72 bg-background pl-8">
+    </div>
+
+    <!-- Notifikasi (contoh Dropdown) -->
+    <div data-dropdown>
+      <button type="button" data-dropdown-toggle aria-label="Notifikasi" aria-expanded="false" class="btn btn-outline btn-icon relative">
+        {{> icon name="bell"}}
+        <span class="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-danger"></span>
+      </button>
+      <div class="menu menu-right w-80" hidden>
+        <p class="menu-label">Notifikasi</p>
+        <a href="#" class="menu-item items-start gap-3 py-2">
+          <span class="avatar avatar-success avatar-sm mt-0.5">{{> icon name="check-circle"}}</span>
+          <span class="leading-snug"><span class="block font-medium">Pesanan #KK-2841 selesai</span><span class="block text-xs text-muted-foreground">10 menit lalu</span></span>
+        </a>
+        <a href="#" class="menu-item items-start gap-3 py-2">
+          <span class="avatar avatar-warning avatar-sm mt-0.5">{{> icon name="alert-triangle"}}</span>
+          <span class="leading-snug"><span class="block font-medium">Stok Toraja Sapan menipis</span><span class="block text-xs text-muted-foreground">2 jam lalu</span></span>
+        </a>
+        <a href="#" class="menu-item items-start gap-3 py-2">
+          <span class="avatar avatar-soft avatar-sm mt-0.5">{{> icon name="userplus"}}</span>
+          <span class="leading-snug"><span class="block font-medium">Pelanggan baru mendaftar</span><span class="block text-xs text-muted-foreground">5 jam lalu</span></span>
+        </a>
+        <div class="menu-sep"></div>
+        <a href="#" class="menu-item justify-center text-primary">Lihat semua notifikasi</a>
+      </div>
+    </div>
+
+    <button type="button" data-modal-open="#customizer" aria-label="Kustomisasi tampilan" data-tip="Kustomisasi" data-tip-pos="bottom left" class="btn btn-outline btn-icon">{{> icon name="palette"}}</button>
+    <button type="button" data-theme-toggle aria-label="Ganti tema" class="btn btn-outline btn-icon"><svg class="h-4 w-4" aria-hidden="true"><use class="js-theme-icon" href="#i-moon"/></svg></button>
+  </div>
+</header>

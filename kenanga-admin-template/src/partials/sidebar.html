@@ -1,0 +1,67 @@
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-hidden border-r bg-sidebar" aria-label="Navigasi utama">
+  <!-- Workspace -->
+  <div class="p-3">
+    <button type="button" class="flex w-full items-center gap-2.5 rounded-md p-2 text-left hover:bg-accent focus-ring">
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">{{> icon name="coffee"}}</span>
+      <span class="sb-label min-w-0 flex-1 leading-tight">
+        <span class="block truncate text-sm font-medium">Kopi Kenanga</span>
+        <span class="block truncate text-xs text-muted-foreground">Toko online</span>
+      </span>
+      {{> icon name="updown" class="sb-label h-4 w-4 shrink-0 text-muted-foreground"}}
+    </button>
+  </div>
+
+  <!-- Menu -->
+  <nav class="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-3 pb-3 pt-1">
+    <div>
+      <p class="sb-label mb-1 px-2 text-xs font-medium text-muted-foreground">Platform</p>
+      <ul class="space-y-0.5">
+        <li>{{> nav-link href="index.html" icon="dashboard" label="Dashboard"}}</li>
+        <li>{{> nav-link href="analytics.html" icon="chart" label="Analitik" badge="Baru"}}</li>
+      </ul>
+    </div>
+
+    <div>
+      <p class="sb-label mb-1 px-2 text-xs font-medium text-muted-foreground">Komponen</p>
+      <ul class="space-y-0.5">
+        <li>{{> nav-link href="cards.html" icon="grid" label="Kartu"}}</li>
+        <li>{{> nav-link href="tables.html" icon="table" label="Tabel"}}</li>
+        <li>{{> nav-link href="forms.html" icon="file-text" label="Formulir"}}</li>
+        <li>{{> nav-link href="buttons.html" icon="pointer" label="Tombol dan lencana"}}</li>
+        <li>{{> nav-link href="feedback.html" icon="message" label="Umpan balik"}}</li>
+        <li>{{> nav-link href="navigation.html" icon="compass" label="Navigasi"}}</li>
+      </ul>
+    </div>
+
+    <div>
+      <p class="sb-label mb-1 px-2 text-xs font-medium text-muted-foreground">Halaman</p>
+      <ul class="space-y-0.5">
+        <li>{{> nav-link href="settings.html" icon="settings" label="Pengaturan akun"}}</li>
+        <li>
+          <button type="button" class="nav-link" data-collapse="#sub-auth" aria-expanded="false">
+            {{> icon name="lock" class="h-4 w-4 shrink-0"}}
+            <span class="sb-label flex-1 truncate">Otentikasi</span>
+            {{> icon name="chevron-right" class="nav-chevron sb-label h-4 w-4 transition-transform"}}
+          </button>
+          <ul id="sub-auth" class="nav-sub sb-label" hidden>
+            <li>{{> nav-link href="login.html" label="Masuk"}}</li>
+            <li>{{> nav-link href="404.html" label="Kesalahan 404"}}</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Footer -->
+  <div class="border-t p-3">
+    <a href="#" class="nav-link mb-1">{{> icon name="help" class="h-4 w-4 shrink-0"}}<span class="sb-label">Bantuan</span></a>
+    <button type="button" class="flex w-full items-center gap-2.5 rounded-md p-2 text-left hover:bg-accent focus-ring">
+      <span class="avatar avatar-soft">AR</span>
+      <span class="sb-label min-w-0 flex-1 leading-tight">
+        <span class="block truncate text-sm font-medium">Ayu Rahmawati</span>
+        <span class="block truncate text-xs text-muted-foreground">ayu@kopikenanga.id</span>
+      </span>
+      {{> icon name="updown" class="sb-label h-4 w-4 shrink-0 text-muted-foreground"}}
+    </button>
+  </div>
+</aside>
