@@ -1,0 +1,116 @@
+<x-layouts.admin title="Navigasi" group="Komponen">
+<x-ui.page-header title="Navigasi" description="Tab, akordeon, dropdown, paginasi, breadcrumb, stepper, dan daftar menu." />
+
+<section class="grid gap-4 lg:grid-cols-2">
+  <x-ui.card title="Tab garis bawah" description="Navigasi dengan panel. Gunakan panah kiri dan kanan." class="min-w-0">
+    <div data-tabs>
+      <div class="tabs-underline" role="tablist" aria-label="Detail pesanan">
+        <button type="button" role="tab" class="tab" id="tu-1" aria-selected="true" aria-controls="tp-1">Ringkasan</button>
+        <button type="button" role="tab" class="tab" id="tu-2" aria-selected="false" tabindex="-1" aria-controls="tp-2">Item <span class="tab-count">4</span></button>
+        <button type="button" role="tab" class="tab" id="tu-3" aria-selected="false" tabindex="-1" aria-controls="tp-3">Riwayat</button>
+      </div>
+      <div id="tp-1" role="tabpanel" aria-labelledby="tu-1" class="pt-4 text-muted-foreground">Ringkasan pesanan #KK-2841: dibayar via transfer bank, dikirim dengan JNE reguler.</div>
+      <div id="tp-2" role="tabpanel" aria-labelledby="tu-2" class="pt-4 text-muted-foreground" hidden>Empat item: Arabika Gayo 1 kg × 2, Toraja Sapan 500 g, French press 600 ml.</div>
+      <div id="tp-3" role="tabpanel" aria-labelledby="tu-3" class="pt-4 text-muted-foreground" hidden>Dibuat 28 Sep, dibayar 28 Sep, dikemas 28 Sep, dikirim 29 Sep.</div>
+    </div>
+  </x-ui.card>
+
+  <x-ui.card title="Tab pil dan tab soft" description="Dua gaya lain dari komponen yang sama." class="min-w-0">
+    <div data-tabs>
+      <div class="tabs-pill" role="tablist" aria-label="Periode">
+        <button type="button" role="tab" class="tab" id="tq-1" aria-selected="true" aria-controls="tr-1"><x-ui.icon name="chart" />Grafik</button>
+        <button type="button" role="tab" class="tab" id="tq-2" aria-selected="false" tabindex="-1" aria-controls="tr-2"><x-ui.icon name="table" />Tabel</button>
+      </div>
+      <div id="tr-1" role="tabpanel" aria-labelledby="tq-1" class="pt-4 text-muted-foreground">Panel grafik.</div>
+      <div id="tr-2" role="tabpanel" aria-labelledby="tq-2" class="pt-4 text-muted-foreground" hidden>Panel tabel.</div>
+    </div>
+    <div class="mt-6" data-tabs>
+      <div class="tabs-soft" role="tablist" aria-label="Filter">
+        <button type="button" role="tab" class="tab" aria-selected="true">Semua</button>
+        <button type="button" role="tab" class="tab" aria-selected="false" tabindex="-1">Aktif</button>
+        <button type="button" role="tab" class="tab" aria-selected="false" tabindex="-1">Arsip</button>
+      </div>
+    </div>
+  </x-ui.card>
+
+  <x-ui.card title="Akordeon" description="Memakai elemen details bawaan, tanpa JavaScript." class="min-w-0">
+    <div class="accordion">
+      <details open><summary>Bagaimana cara menambah produk?<x-ui.icon name="chevron-down" class="h-4 w-4 text-muted-foreground transition-transform" /></summary><div>Buka menu Produk, klik Tambah produk, lalu isi nama, harga, dan stok.</div></details>
+      <details><summary>Metode pembayaran apa yang didukung?<x-ui.icon name="chevron-down" class="h-4 w-4 text-muted-foreground transition-transform" /></summary><div>Transfer bank, e-wallet, kartu kredit, dan bayar di tempat.</div></details>
+      <details><summary>Bisakah saya mengekspor data?<x-ui.icon name="chevron-down" class="h-4 w-4 text-muted-foreground transition-transform" /></summary><div>Ya. Setiap tabel memiliki tombol ekspor ke CSV dan Excel.</div></details>
+    </div>
+  </x-ui.card>
+
+  <x-ui.card title="Menu dropdown" description="Menu biasa, dengan ikon, pemisah, dan menu pengguna." class="min-w-0">
+    <div class="flex flex-wrap gap-3">
+      <div data-dropdown>
+        <button type="button" class="btn btn-outline" data-dropdown-toggle aria-expanded="false">Opsi<x-ui.icon name="chevron-down" /></button>
+        <div class="menu" hidden>
+          <p class="menu-label">Tindakan</p>
+          <button type="button" class="menu-item"><x-ui.icon name="edit" />Ubah</button>
+          <button type="button" class="menu-item"><x-ui.icon name="copy" />Duplikat</button>
+          <button type="button" class="menu-item"><x-ui.icon name="download" />Ekspor</button>
+          <div class="menu-sep"></div>
+          <button type="button" class="menu-item menu-item-danger"><x-ui.icon name="trash" />Hapus</button>
+        </div>
+      </div>
+      <div data-dropdown>
+        <button type="button" class="btn btn-ghost h-auto gap-2 p-1 pr-2" data-dropdown-toggle aria-expanded="false"><span class="avatar avatar-sm">AR</span>Ayu<x-ui.icon name="chevron-down" class="h-4 w-4 text-muted-foreground" /></button>
+        <div class="menu w-56" hidden>
+          <div class="px-2 py-1.5"><p class="font-medium">Ayu Rahmawati</p><p class="text-xs text-muted-foreground">ayu@kopikenanga.id</p></div>
+          <div class="menu-sep"></div>
+          <a href="{{ route('admin.settings') }}" class="menu-item"><x-ui.icon name="user" />Profil</a>
+          <a href="{{ route('admin.settings') }}" class="menu-item"><x-ui.icon name="settings" />Pengaturan</a>
+          <a href="#" class="menu-item"><x-ui.icon name="card" />Penagihan</a>
+          <div class="menu-sep"></div>
+          <a href="{{ route('login') }}" class="menu-item"><x-ui.icon name="logout" />Keluar</a>
+        </div>
+      </div>
+    </div>
+  </x-ui.card>
+</section>
+
+<section class="grid gap-4 lg:grid-cols-2">
+  <x-ui.card title="Paginasi" description="Tiga gaya: angka, ringkas, dan berbatas." class="min-w-0">
+    <div class="space-y-5">
+      <div class="flex flex-wrap items-center gap-1">
+        <button type="button" class="page-btn" aria-label="Sebelumnya"><x-ui.icon name="chevron-left" /></button>
+        <button type="button" class="page-btn">1</button><button type="button" class="page-btn" aria-current="page">2</button><button type="button" class="page-btn">3</button>
+        <span class="px-1 text-muted-foreground">…</span><button type="button" class="page-btn">12</button>
+        <button type="button" class="page-btn" aria-label="Berikutnya"><x-ui.icon name="chevron-right" /></button>
+      </div>
+      <div class="flex items-center gap-3"><button type="button" class="btn btn-outline btn-sm"><x-ui.icon name="chevron-left" />Sebelumnya</button><span class="text-sm text-muted-foreground">Halaman 2 dari 12</span><button type="button" class="btn btn-outline btn-sm">Berikutnya<x-ui.icon name="chevron-right" /></button></div>
+      <div class="flex items-center gap-1">
+        <button type="button" class="page-btn page-btn-outline" aria-label="Sebelumnya"><x-ui.icon name="chevron-left" /></button>
+        <button type="button" class="page-btn page-btn-outline">1</button><button type="button" class="page-btn page-btn-outline" aria-current="page">2</button><button type="button" class="page-btn page-btn-outline">3</button>
+        <button type="button" class="page-btn page-btn-outline" aria-label="Berikutnya"><x-ui.icon name="chevron-right" /></button>
+      </div>
+    </div>
+  </x-ui.card>
+
+  <x-ui.card title="Breadcrumb" description="Jejak navigasi." class="min-w-0">
+    <div class="space-y-4 text-sm">
+      <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-1.5"><a href="#" class="text-muted-foreground hover:text-foreground">Beranda</a><x-ui.icon name="chevron-right" class="h-3.5 w-3.5 text-muted-foreground" /><a href="#" class="text-muted-foreground hover:text-foreground">Pesanan</a><x-ui.icon name="chevron-right" class="h-3.5 w-3.5 text-muted-foreground" /><span class="font-medium">#KK-2841</span></nav>
+      <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-muted-foreground"><a href="#" class="inline-flex items-center gap-1 hover:text-foreground"><x-ui.icon name="home" /></a><span>/</span><a href="#" class="hover:text-foreground">Produk</a><span>/</span><span class="text-foreground">Biji kopi</span></nav>
+      <nav aria-label="Breadcrumb" class="inline-flex items-center gap-1 rounded-lg border bg-card p-1"><a href="#" class="rounded-md px-2 py-1 text-muted-foreground hover:bg-accent">Beranda</a><a href="#" class="rounded-md px-2 py-1 text-muted-foreground hover:bg-accent">Laporan</a><span class="rounded-md bg-soft px-2 py-1 font-medium text-soft-foreground">Bulanan</span></nav>
+    </div>
+  </x-ui.card>
+
+  <x-ui.card title="Stepper" description="Langkah proses dengan status selesai, sedang, dan belum." class="min-w-0">
+    <ol class="flex items-center">
+      <li class="flex flex-1 items-center gap-3"><span class="step step-done"><x-ui.icon name="check" /></span><span class="hidden text-sm font-medium sm:block">Keranjang</span><span class="h-px flex-1 bg-primary"></span></li>
+      <li class="flex flex-1 items-center gap-3"><span class="step step-current">2</span><span class="hidden text-sm font-medium sm:block">Pengiriman</span><span class="h-px flex-1 bg-border"></span></li>
+      <li class="flex items-center gap-3"><span class="step step-todo">3</span><span class="hidden text-sm text-muted-foreground sm:block">Pembayaran</span></li>
+    </ol>
+  </x-ui.card>
+
+  <x-ui.card title="Daftar menu vertikal" description="Pola navigasi untuk halaman pengaturan." class="min-w-0">
+    <nav class="w-full max-w-xs space-y-0.5" aria-label="Pengaturan">
+      <a href="#" class="nav-link" aria-current="page"><x-ui.icon name="user" />Profil</a>
+      <a href="#" class="nav-link"><x-ui.icon name="lock" />Keamanan</a>
+      <a href="#" class="nav-link"><x-ui.icon name="bell" />Notifikasi<span class="ml-auto rounded-full bg-soft px-1.5 py-0.5 text-xs font-medium text-soft-foreground">3</span></a>
+      <a href="#" class="nav-link"><x-ui.icon name="card" />Penagihan</a>
+    </nav>
+  </x-ui.card>
+</section>
+</x-layouts.admin>
