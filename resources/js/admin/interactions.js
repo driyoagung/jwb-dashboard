@@ -367,6 +367,13 @@
 
     if (qi) qi.addEventListener('input', function () { st.q = qi.value.trim().toLowerCase(); st.page = 1; draw(); });
     if (fi) fi.addEventListener('change', function () { st.f = fi.value; st.page = 1; draw(); });
+    var reset = $('[data-demo-reset-table]', t);
+    if (reset) reset.addEventListener('click', function () {
+      if (qi) qi.value = '';
+      if (fi) fi.value = '';
+      st.q = ''; st.f = ''; st.page = 1; draw();
+      if (qi) qi.focus();
+    });
     ths.forEach(function (h) {
       h.tabIndex = 0;
       var go = function () {
