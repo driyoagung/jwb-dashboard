@@ -39,7 +39,7 @@
           <th>Status</th>
           <th data-sort="num" class="text-right">Pesanan</th>
           <th data-sort>Terakhir aktif</th>
-          <th class="w-12"><span class="sr-only">Aksi</span></th>
+          <th class="w-12" scope="col" aria-label="Aksi"></th>
         </tr>
       </thead>
       <tbody>

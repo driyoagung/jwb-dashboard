@@ -25,9 +25,10 @@ php artisan optimize
 
 - `resources/views/components/layouts` — layout admin, guest, dan blank.
 - `resources/views/components/admin` — sidebar, header, footer, navigasi, dan customizer.
-- `resources/views/components/ui` — komponen UI reusable seperti card, button, field, badge, alert, dan stat card.
+- `resources/views/components/ui` — komponen UI reusable seperti card, button, field, badge, modal, drawer, combobox, date range, file preview, table state, dan chart.
 - `resources/views/admin` — dashboard, analitik, dan pengaturan akun.
 - `resources/views/showcase` — katalog komponen untuk referensi saat membangun proyek baru.
+- `resources/views/examples/records` — contoh alur daftar, detail, tambah, dan edit yang sepenuhnya frontend.
 - `resources/js/admin` — grafik SVG dan interaksi dashboard.
 - `resources/css/app.css` — design tokens, tema, dan component styles.
 - `config/kenanga.php` — branding, navigasi, pilihan tema, serta data demo.
@@ -40,10 +41,17 @@ php artisan optimize
 | `/analytics` | `admin.analytics` | Analitik |
 | `/settings` | `admin.settings` | Pengaturan akun |
 | `/components/*` | `showcase.*` | Katalog komponen |
+| `/components/filters` | `showcase.filters` | Combobox, rentang tanggal, filter chip, dan unggah berkas |
+| `/components/table-states` | `showcase.table-states` | State tabel siap, memuat, kosong, tanpa hasil, dan error |
+| `/components/charts` | `showcase.charts` | Variasi grafik SVG dan state kosong |
+| `/examples/records` | `examples.records.index` | Contoh daftar dengan pencarian, filter, dan paginasi |
+| `/examples/records/new` | `examples.records.create` | Contoh form tambah |
+| `/examples/records/detail` | `examples.records.show` | Contoh halaman detail |
+| `/examples/records/edit` | `examples.records.edit` | Contoh form edit |
 | `/login` | `login` | Tampilan masuk |
 | `/demo/404` | `demo.404` | Demo halaman 404 |
 
-Halaman login masih berupa presentational UI; hubungkan ke autentikasi Laravel saat dipakai di proyek nyata.
+Halaman login dan semua contoh data masih berupa presentational UI. Form contoh hanya menampilkan toast; tidak menyimpan data. Hubungkan autentikasi, validasi server, dan persistensi sesuai kebutuhan proyek nyata.
 
 ## Kustomisasi starter kit
 
@@ -57,7 +65,7 @@ ADMIN_WORKSPACE_DESCRIPTION="Toko online"
 ADMIN_SHOWCASE=true
 ```
 
-Menu sidebar didefinisikan di `config/kenanga.php`. Tambahkan route, view, lalu masukkan item baru ke array `navigation`. Untuk menyembunyikan katalog komponen pada aplikasi produksi, gunakan `ADMIN_SHOWCASE=false`.
+Menu sidebar didefinisikan di `config/kenanga.php`. Tambahkan route, view, lalu masukkan item baru ke array `navigation`. Untuk menyembunyikan katalog komponen dan halaman contoh pada aplikasi produksi, gunakan `ADMIN_SHOWCASE=false`.
 
 Contoh halaman baru:
 

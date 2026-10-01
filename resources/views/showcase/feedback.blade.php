@@ -63,46 +63,27 @@
   </div>
 </x-ui.card>
 
-<!-- Dialog: diletakkan di dalam halaman agar mudah dipisah jadi komponen -->
-<dialog id="modal-form" class="modal" aria-labelledby="mf-title">
-  <div class="p-6">
-    <h2 id="mf-title" class="text-lg font-semibold">Tambah produk</h2>
-    <p class="mt-1 text-sm text-muted-foreground">Isi detail produk baru untuk katalog Anda.</p>
-    <div class="mt-5 space-y-4">
+<x-ui.modal id="modal-form" title="Tambah produk" description="Isi detail produk baru untuk katalog Anda.">
+    <div class="space-y-4">
       <div class="space-y-2"><label class="label" for="mf-name">Nama produk</label><input id="mf-name" class="input" placeholder="Contoh: Arabika Gayo 1 kg"></div>
       <div class="grid grid-cols-2 gap-3">
         <div class="space-y-2"><label class="label" for="mf-price">Harga</label><div class="input-group"><span class="input-addon">Rp</span><input id="mf-price" class="input" placeholder="170000"></div></div>
         <div class="space-y-2"><label class="label" for="mf-stock">Stok</label><input id="mf-stock" type="number" class="input" placeholder="0"></div>
       </div>
     </div>
-    <div class="mt-6 flex justify-end gap-2"><button type="button" class="btn btn-outline" data-modal-close>Batal</button><button type="button" class="btn btn-primary" data-modal-close data-toast="success" data-toast-title="Produk ditambahkan">Simpan</button></div>
-  </div>
-</dialog>
+    <x-slot:footer><button type="button" class="btn btn-outline" data-modal-close>Batal</button><button type="button" class="btn btn-primary" data-modal-close data-toast="success" data-toast-title="Produk ditambahkan">Simpan</button></x-slot:footer>
+</x-ui.modal>
 
-<dialog id="modal-info" class="modal" aria-labelledby="mi-title">
-  <div class="p-6">
-    <div class="flex items-start gap-4">
-      <span class="avatar avatar-info avatar-lg"><x-ui.icon name="info" class="h-5 w-5" /></span>
-      <div><h2 id="mi-title" class="text-lg font-semibold">Pembaruan dijadwalkan</h2><p class="mt-1 text-muted-foreground">Sistem akan menjalani pemeliharaan Minggu pukul 01.00–03.00 WIB. Dashboard tetap bisa dibuka.</p></div>
-    </div>
-    <div class="mt-6 flex justify-end"><button type="button" class="btn btn-primary" data-modal-close>Mengerti</button></div>
-  </div>
-</dialog>
+<x-ui.modal id="modal-info" title="Pembaruan dijadwalkan" description="Sistem akan menjalani pemeliharaan Minggu pukul 01.00–03.00 WIB. Dashboard tetap bisa dibuka." icon="info" tone="info" size="sm">
+    <x-slot:footer><button type="button" class="btn btn-primary" data-modal-close>Mengerti</button></x-slot:footer>
+</x-ui.modal>
 
-<dialog id="modal-confirm" class="modal max-w-md" aria-labelledby="mc-title">
-  <div class="p-6">
-    <div class="flex items-start gap-4">
-      <span class="avatar avatar-danger avatar-lg"><x-ui.icon name="trash" class="h-5 w-5" /></span>
-      <div><h2 id="mc-title" class="text-lg font-semibold">Hapus pesanan?</h2><p class="mt-1 text-muted-foreground">Pesanan #KK-2837 akan dihapus permanen dan tidak bisa dipulihkan.</p></div>
-    </div>
-    <div class="mt-6 flex justify-end gap-2"><button type="button" class="btn btn-outline" data-modal-close>Batal</button><button type="button" class="btn btn-destructive" data-modal-close data-toast="danger" data-toast-title="Pesanan dihapus">Ya, hapus</button></div>
-  </div>
-</dialog>
+<x-ui.modal id="modal-confirm" title="Hapus pesanan?" description="Pesanan #KK-2837 akan dihapus permanen dan tidak bisa dipulihkan." icon="trash" tone="danger" size="sm">
+    <x-slot:footer><button type="button" class="btn btn-outline" data-modal-close>Batal</button><button type="button" class="btn btn-destructive" data-modal-close data-toast="danger" data-toast-title="Pesanan dihapus">Ya, hapus</button></x-slot:footer>
+</x-ui.modal>
 
-<dialog id="drawer-filter" class="drawer" aria-labelledby="df-title">
-  <div class="flex h-full flex-col">
-    <div class="flex items-center justify-between border-b p-5"><h2 id="df-title" class="font-semibold">Filter pesanan</h2><button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close aria-label="Tutup"><x-ui.icon name="x" /></button></div>
-    <div class="flex-1 space-y-5 overflow-y-auto p-5">
+<x-ui.drawer id="drawer-filter" title="Filter pesanan">
+    <div class="space-y-5">
       <div class="space-y-2"><label class="label" for="df-status">Status</label><select id="df-status" class="select"><option>Semua</option><option>Selesai</option><option>Dikirim</option><option>Diproses</option></select></div>
       <div class="space-y-2"><span class="label">Rentang tanggal</span><div class="grid grid-cols-2 gap-2"><input type="date" class="input" aria-label="Dari"><input type="date" class="input" aria-label="Sampai"></div></div>
       <div class="space-y-3"><span class="label">Kanal</span>
@@ -111,7 +92,6 @@
         <label class="flex items-center gap-2"><input type="checkbox"> WhatsApp</label>
       </div>
     </div>
-    <div class="flex gap-2 border-t p-5"><button type="button" class="btn btn-outline flex-1" data-modal-close>Atur ulang</button><button type="button" class="btn btn-primary flex-1" data-modal-close>Terapkan</button></div>
-  </div>
-</dialog>
+    <x-slot:footer><button type="button" class="btn btn-outline flex-1" data-modal-close>Atur ulang</button><button type="button" class="btn btn-primary flex-1" data-modal-close>Terapkan</button></x-slot:footer>
+</x-ui.drawer>
 </x-layouts.admin>
