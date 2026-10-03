@@ -1,7 +1,8 @@
+@props(['title' => 'Dashboard'])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
-    <x-admin.head :title="$title ?? null" />
+    <x-layouts.head :title="$title" />
 </head>
 <body data-layout="blank" class="font-sans text-sm antialiased">
     <x-icon.sprite />

@@ -48,6 +48,14 @@ class ExampleTest extends TestCase
             ->assertSee('aria-current="page"', false);
     }
 
+    public function test_blank_layout_renders_testing_page_without_admin_site_binding(): void
+    {
+        $this->get('/testing')
+            ->assertOk()
+            ->assertSee('Component Testing')
+            ->assertSee('data-chart="line"', false);
+    }
+
     public function test_frontend_showcase_exposes_reusable_components(): void
     {
         $this->get('/components/feedback')

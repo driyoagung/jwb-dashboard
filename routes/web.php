@@ -31,3 +31,4 @@ if (config('kenanga.showcase')) {
 
 Route::view('/login', 'auth.login')->name('login');
 Route::view('/demo/404', 'errors.404')->name('demo.404');
+Route::view('/testing', 'testing')->name('testing');

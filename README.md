@@ -2,6 +2,8 @@
 
 Kenanga Admin adalah starter kit dashboard Laravel 12 yang dislicing dari template HTML `kenanga-admin-template`. Seluruh halaman utama sudah memakai Blade layout, Blade components, Vite, Tailwind CSS 4, JavaScript modular, tema terang/gelap, pilihan aksen, dan layout responsif.
 
+Panduan lengkap tersedia di situs VitePress dalam `docs/`: jalankan `npm run docs:dev` setelah `npm install`. Build dokumentasi dengan `npm run docs:build`. Dokumentasi mencakup referensi komponen `<x-ui.*>` dan cara menghubungkan halaman demo ke backend Laravel.
+
 ## Menjalankan proyek
 
 ```bash

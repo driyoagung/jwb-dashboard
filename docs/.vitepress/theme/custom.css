@@ -1,0 +1,57 @@
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-600.css';
+@import '@fontsource/inter/latin-700.css';
+
+:root {
+  --vp-font-family-base: Inter, ui-sans-serif, system-ui, sans-serif;
+  --vp-c-brand-1: #4338ca;
+  --vp-c-brand-2: #4f46e5;
+  --vp-c-brand-3: #3730a3;
+  --vp-c-brand-soft: #eef2ff;
+  --vp-c-bg: #f8f9fc;
+  --vp-c-bg-soft: #f1f3f9;
+  --vp-c-bg-alt: #fff;
+  --vp-c-divider: #e2e6ef;
+  --vp-c-text-1: #171b2b;
+  --vp-c-text-2: #505a70;
+  --vp-layout-max-width: 1520px;
+}
+
+.dark {
+  --vp-c-brand-1: #a5b4fc;
+  --vp-c-brand-2: #818cf8;
+  --vp-c-brand-3: #c7d2fe;
+  --vp-c-brand-soft: #252444;
+  --vp-c-bg: #09090b;
+  --vp-c-bg-soft: #111114;
+  --vp-c-bg-alt: #0e0e11;
+  --vp-c-divider: #27272a;
+  --vp-c-text-1: #fafafa;
+  --vp-c-text-2: #b4b4bd;
+}
+
+.VPHome .VPHero .actions .VPButton.brand {
+  background-color: #4338ca;
+  border-color: #4338ca;
+  color: #fff;
+}
+.VPHome .VPHero .actions .VPButton.brand:hover {
+  background-color: #3730a3;
+  border-color: #3730a3;
+  color: #fff;
+}
+.VPHome .VPHero .actions .VPButton.brand:focus-visible {
+  outline-color: var(--vp-c-brand-1);
+}
+
+.VPHome .VPHero .name,
+.VPHome .VPHero .text { max-width: 780px; }
+.VPHome .VPHero .tagline { max-width: 54ch; }
+.VPDoc .content-container { max-width: 780px !important; }
+.VPDoc h1 { letter-spacing: -0.035em; }
+.VPDoc h2 { letter-spacing: -0.025em; }
+.vp-doc :not(pre) > code { overflow-wrap: anywhere; }
+.vp-doc a { text-underline-offset: 3px; }
+::selection { background: var(--vp-c-brand-soft); color: var(--vp-c-text-1); }
+:focus-visible { outline: 2px solid var(--vp-c-brand-1); outline-offset: 3px; }
