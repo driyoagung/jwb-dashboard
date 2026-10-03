@@ -1,6 +1,6 @@
 # 📅 Date range
 
-`<x-ui.date-range>` menyajikan preset 7/30 hari dan dua input tanggal. Sumber: `resources/views/components/ui/date-range.blade.php` dan `resources/js/admin/advanced-inputs.js`.
+`<x-ui.date-range>` menyajikan preset 7/30 hari dan dua input tanggal yang ditingkatkan oleh Flatpickr. Sumber: `resources/views/components/ui/date-range.blade.php`, `resources/js/admin/advanced-inputs.js`, dan `enhanced-controls.js`.
 
 ## 🧩 API
 
@@ -8,14 +8,16 @@
 | --- | --- | --- |
 | `id` | wajib | Dasar ID `{id}-from` dan `{id}-to` |
 | `label` | `Rentang tanggal` | Judul fieldset |
+| `fromName`, `toName` | `null` | Nama request untuk awal/akhir |
+| `from`, `to` | `null` | Nilai awal ISO `Y-m-d`; `old()` diprioritaskan bila nama ada |
 | Atribut root | — | Diteruskan ke `<fieldset data-date-range>` |
 
-Tidak ada prop `from`, `to`, atau nama request bawaan. HTML yang dihasilkan tidak berisi `name` pada kedua input; preset hanya mengubah nilai di browser.
+Jika `fromName`/`toName` tidak diisi, input tidak memiliki `name` dan hanya menjadi demo lokal. Nilai yang dikirim form tetap `Y-m-d` meskipun label kalender ditampilkan dengan nama bulan bahasa Indonesia. Tanpa JS, input teks meminta tanggal ISO; validasi server tetap diperlukan.
 
 ## 📆 Pemakaian demo dan beberapa instance
 
 ```blade
-<x-ui.date-range id="periode-penjualan" label="Periode penjualan" />
+<x-ui.date-range id="periode-penjualan" label="Periode penjualan" from-name="from" to-name="to" />
 <x-ui.date-range id="periode-kunjungan" label="Periode kunjungan" class="mt-6" />
 ```
 
@@ -23,14 +25,17 @@ Tidak ada prop `from`, `to`, atau nama request bawaan. HTML yang dihasilkan tida
 
 ## 🔗 Mengirim filter ke backend
 
-Sebelum memakai dalam form GET, ubah markup komponen agar input `data-range-from` dan `data-range-to` memiliki `name` (misalnya `from`/`to`) dan `value` dari request. Penyesuaian yang diperlukan di komponen (ilustrasi):
+Untuk memakai dalam form GET, isi nama field dan nilai awal:
 
 ```blade
-<input id="{{ $id }}-from" name="from" type="date" value="{{ request('from') }}" class="input" data-range-from>
-<input id="{{ $id }}-to" name="to" type="date" value="{{ request('to') }}" class="input" data-range-to>
+<form method="GET" action="{{ route('examples.records.index') }}">
+    <x-ui.date-range id="periode-filter" from-name="from" to-name="to"
+        :from="request('from')" :to="request('to')" />
+    <x-ui.button type="submit">Terapkan</x-ui.button>
+</form>
 ```
 
-Lalu letakkan komponen di `<form method="GET">` bersama tombol submit; tombol preset sendiri tidak mengirim request. Jika dua instance berada dalam form yang sama, gunakan **nama input berbeda** untuk tiap rentang.
+Tombol preset sendiri tidak mengirim request. Jika dua instance berada dalam form yang sama, gunakan **nama input berbeda** untuk tiap rentang. Tombol Hapus membersihkan kedua tanggal tetapi tetap memerlukan submit untuk memperbarui daftar server.
 
 ## ✅ Validasi tanggal
 

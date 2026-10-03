@@ -70,7 +70,10 @@
     }
     function update() {
       var invalid = Boolean(from.value && to.value && from.value > to.value);
-      [from, to].forEach(function (input) { input.setAttribute('aria-invalid', String(invalid)); });
+      [from, to].forEach(function (input) {
+        input.setAttribute('aria-invalid', String(invalid));
+        if (input._flatpickr && input._flatpickr.altInput) input._flatpickr.altInput.setAttribute('aria-invalid', String(invalid));
+      });
       status.className = invalid ? 'field-error' : 'field-help';
       status.textContent = invalid ? 'Tanggal awal tidak boleh setelah tanggal akhir.' :
         from.value && to.value ? 'Periode: ' + from.value + ' hingga ' + to.value + '.' :
@@ -80,15 +83,19 @@
       button.addEventListener('click', function () {
         var last = new Date(), first = new Date(last);
         first.setDate(last.getDate() - Number(button.dataset.rangeDays) + 1);
-        from.value = dateValue(first); to.value = dateValue(last);
+        if (from._flatpickr) from._flatpickr.setDate(dateValue(first), false);
+        else from.value = dateValue(first);
+        if (to._flatpickr) to._flatpickr.setDate(dateValue(last), false);
+        else to.value = dateValue(last);
         presets.forEach(function (item) { item.setAttribute('aria-pressed', String(item === button)); });
         update();
       });
     });
     root.querySelector('[data-range-clear]').addEventListener('click', function () {
-      from.value = ''; to.value = '';
+      if (from._flatpickr) from._flatpickr.clear(false); else from.value = '';
+      if (to._flatpickr) to._flatpickr.clear(false); else to.value = '';
       presets.forEach(function (button) { button.setAttribute('aria-pressed', 'false'); });
-      update(); from.focus();
+      update(); (from._flatpickr?.altInput || from).focus();
     });
     [from, to].forEach(function (input) { input.addEventListener('change', function () {
       presets.forEach(function (button) { button.setAttribute('aria-pressed', 'false'); }); update();

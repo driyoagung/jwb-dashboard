@@ -1,7 +1,8 @@
 <x-layouts.admin title="Kartu" group="Komponen">
 <x-ui.page-header title="Kartu" description="Variasi kartu statistik, profil, harga, produk, aktivitas, dan daftar." />
 
-<h2 class="-mb-2 text-lg font-semibold tracking-tight">Kartu statistik</h2>
+<div class="space-y-4">
+  <h2 class="text-lg font-semibold tracking-tight">Kartu statistik</h2>
 <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Ikon berwarna">
   <x-ui.stat-card title="Pendapatan" value="Rp 58,4 jt" icon="dollar" tile="bg-soft text-soft-foreground" tone="success" direction="up" delta="+13,2%" />
   <x-ui.stat-card title="Pelanggan baru" value="1.284" icon="userplus" tile="bg-success-soft text-success" tone="success" direction="up" delta="+8,1%" />
@@ -39,8 +40,10 @@
     <p class="mt-1 text-xs text-success/80">Pertumbuhan tahunan</p>
   </div>
 </section>
+</div>
 
-<h2 class="-mb-2 mt-2 text-lg font-semibold tracking-tight">Kartu umum</h2>
+<div class="space-y-4">
+  <h2 class="text-lg font-semibold tracking-tight">Kartu umum</h2>
 <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
   <!-- Header dengan aksi, konten, footer -->
   <div class="card">
@@ -196,4 +199,5 @@
     <button type="button" class="btn btn-primary"><x-ui.icon name="plus" />Buat laporan</button>
   </div>
 </section>
+</div>
 </x-layouts.admin>

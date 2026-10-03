@@ -12,6 +12,7 @@
 | `placeholder` | `null` | Opsi kosong dengan teks sendiri |
 | `includeBlank` | `false` | Opsi kosong bertuliskan `— Pilih —` |
 | `invalid` | `null` | Paksa tampilan invalid |
+| `searchable` | `false` | Aktifkan Choices.js untuk pencarian dan dropdown non-native |
 | Slot utama | kosong | Tambahan `<option>` manual |
 
 ID otomatis adalah `f-{name}`; atribut `required`, `disabled`, `multiple`, `aria-label`, `class`, dan `id` diteruskan ke `<select>`. Komponen mengubah nilai opsi dan `old()` menjadi string saat membandingkan.
@@ -52,3 +53,15 @@ Model `Category` dan view pada contoh harus Anda buat sendiri. Gunakan validator
 ```
 
 Opsi dalam slot tidak otomatis diberi `@selected` oleh komponen: atur sendiri. `multiple` hanya meneruskan atribut HTML; logika pemilihan `old()` bawaan dirancang untuk **satu** nilai. Untuk multi-select, sesuaikan komponen sebelum menggunakan array nilai.
+
+## 🔎 Select yang dapat dicari (Choices.js)
+
+```blade
+<x-ui.field name="category" label="Kategori">
+    <x-ui.select name="category" placeholder="Pilih kategori" :searchable="true"
+        :value="old('category', $record?->category)"
+        :options="['panduan' => 'Panduan', 'laporan' => 'Laporan', 'arsip' => 'Arsip']" />
+</x-ui.field>
+```
+
+Choices.js meningkatkan select secara progresif: option dan `name` tetap berasal dari `<select>` Blade, sehingga request Laravel masih berisi `category`. Pencarian berlangsung di browser dan dropdown menggunakan token terang/gelap dashboard. Tanpa JS, select HTML tetap berfungsi. Penggunaan di dalam modal dapat memerlukan penempatan dropdown khusus bila terpotong oleh `<dialog>`; uji konteks tempat Anda menaruhnya.

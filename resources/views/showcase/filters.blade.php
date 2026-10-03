@@ -14,7 +14,14 @@
     </x-ui.card>
 
     <x-ui.card title="Rentang tanggal" description="Preset cepat dan pilihan tanggal manual dengan validasi urutan.">
-        <x-ui.date-range id="demo-period" />
+        <x-ui.date-range id="demo-period" from-name="from" to-name="to" />
+    </x-ui.card>
+
+    <x-ui.card title="Select yang dapat dicari" description="Choices.js memperkaya select tanpa mengubah nama input untuk Laravel.">
+        <x-ui.field label="Kategori dokumen" name="category">
+            <x-ui.select name="category" placeholder="Pilih kategori" :searchable="true"
+                :options="['panduan' => 'Panduan', 'laporan' => 'Laporan', 'catatan' => 'Catatan', 'arsip' => 'Arsip']" />
+        </x-ui.field>
     </x-ui.card>
 
     <x-ui.card title="Filter chip" description="Gabungkan beberapa kriteria dan lihat pilihan aktif.">

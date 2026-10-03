@@ -2,6 +2,8 @@
 
 Kenanga Admin adalah starter kit frontend Laravel 12 (PHP 8.2+), Blade component, Tailwind CSS 4, dan Vite. Anda membutuhkan Composer, Node.js, npm, serta PHP beserta ekstensi yang diperlukan Laravel.
 
+Select yang dapat dicari menggunakan Choices.js dan kalender tanggal menggunakan Flatpickr, keduanya terpasang lewat `npm install` tanpa CDN.
+
 ## 🖥️ Jalankan dashboard
 
 ```bash
@@ -47,6 +49,7 @@ Build aplikasi dan dokumentasi adalah dua perintah terpisah: `npm run build` mem
 | --- | --- |
 | `/dashboard`, `/analytics`, `/settings` | Halaman utama admin |
 | `/components/*` | Showcase komponen Blade dan pola HTML/CSS |
+| `/components/data-patterns` | Filter bar, detail list, timeline, tabs, konfirmasi aksi |
 | `/examples/records/*` | Contoh daftar, detail, tambah, dan edit entri |
 | `/login`, `/demo/404` | Tampilan tamu dan halaman kesalahan |
 

@@ -47,7 +47,7 @@ Prop: `name`, `value`, `type` (default `text`), `invalid`, `addon`, `icon`. `ico
 
 ### 🔽 `x-ui.select` {#x-ui-select}
 
-Prop: `name`, `value`, `options` berupa array `value => label`, `placeholder`, `includeBlank`, `invalid`. `placeholder` atau `includeBlank` menyisipkan `<option value="">`; bila keduanya tidak ada, pilihan pertama dapat terkirim walaupun pengguna belum memilih secara sadar. Slot bisa berisi `<option>` tambahan. Komponen membandingkan nilai opsi sebagai string agar ID integer dan string tetap cocok.
+Prop: `name`, `value`, `options` berupa array `value => label`, `placeholder`, `includeBlank`, `invalid`, serta `searchable` (default `false`). `placeholder` atau `includeBlank` menyisipkan `<option value="">`; bila keduanya tidak ada, pilihan pertama dapat terkirim walaupun pengguna belum memilih secara sadar. Slot bisa berisi `<option>` tambahan. Aktifkan `:searchable="true"` untuk Choices.js; [referensi select](/komponen/select) menjelaskan detailnya.
 
 ```blade
 <x-ui.select name="status" :value="$record?->status" placeholder="Pilih status"
@@ -96,7 +96,7 @@ Daftar opsi difilter di browser saat mengetik. Pengguna dapat memilih memakai kl
 
 ## 📅 Rentang tanggal {#rentang-tanggal}
 
-`x-ui.date-range` membutuhkan `id`; `label` default `Rentang tanggal`. Tombol preset 7/30 hari mengisi dua `input type="date"`, dan pesan di bawahnya memvalidasi urutan tanggal **di browser saja**. Input tanggal bawaan belum memiliki atribut `name`, sehingga tambahkan `name="from"` dan `name="to"` pada kontrol atau kembangkan komponen sebelum dipakai sebagai filter server. Validasi urutan di controller juga diperlukan, misalnya `after_or_equal:from` untuk tanggal akhir. Tombol `Hapus` hanya mengosongkan input dan belum mengirim request pencarian.
+`x-ui.date-range` memakai Flatpickr untuk dua tanggal dan tombol preset 7/30 hari. Gunakan `from-name="from"` dan `to-name="to"` agar nilai ISO `Y-m-d` terkirim ke Laravel; tanpa nama input hanya untuk demo. Validasi urutan di server tetap diperlukan. Lihat [referensi date range](/komponen/date-range).
 
 ```blade
 <x-ui.date-range id="periode-laporan" label="Periode laporan" />

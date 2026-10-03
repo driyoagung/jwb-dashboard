@@ -18,6 +18,8 @@
         "vitepress": "^1.6.4"
     },
     "dependencies": {
-        "@fontsource/inter": "^5.3.0"
+        "@fontsource/inter": "^5.3.0",
+        "choices.js": "^11.2.4",
+        "flatpickr": "^4.6.13"
     }
 }

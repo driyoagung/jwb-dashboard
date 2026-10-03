@@ -53,6 +53,7 @@ return [
             ['label' => 'Tombol dan lencana', 'route' => 'showcase.buttons', 'active' => 'showcase.buttons', 'icon' => 'pointer'],
             ['label' => 'Umpan balik', 'route' => 'showcase.feedback', 'active' => 'showcase.feedback', 'icon' => 'message'],
             ['label' => 'Navigasi', 'route' => 'showcase.navigation', 'active' => 'showcase.navigation', 'icon' => 'compass'],
+            ['label' => 'Pola data', 'route' => 'showcase.data-patterns', 'active' => 'showcase.data-patterns', 'icon' => 'layers'],
         ]],
         ['label' => 'Contoh halaman', 'showcase' => true, 'items' => [
             ['label' => 'Daftar entri', 'route' => 'examples.records.index', 'active' => 'examples.records.index', 'icon' => 'table'],

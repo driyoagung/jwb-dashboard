@@ -391,6 +391,7 @@
      ===================================================== */
   function initPage(scope) {
     scope = scope || document;
+    if (window.EnhancedControls) EnhancedControls.init(scope);
     $$('[data-table]', scope).forEach(initTable);
     if (window.Charts) Charts.init(scope);
     markActive();
@@ -430,4 +431,3 @@
   syncPrefs();
   if (window.__SPA__) startSpa(); else initPage(document);
 })();
-

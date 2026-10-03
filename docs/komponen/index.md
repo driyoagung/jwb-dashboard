@@ -14,7 +14,7 @@ Komponen di bawah berada di `resources/views/components/ui/`; tag `<x-ui.nama>` 
 
 Sebagian markup halaman, misalnya tabel `.table`, menu dropdown `.menu`, tab, spinner, dan chip filter, diatur melalui CSS dan JavaScript tanpa wrapper `<x-ui.*>`. Lihat [interaksi JavaScript](/komponen/interaksi) untuk kontrak atributnya.
 
-## 🧰 Indeks cepat 21 komponen UI
+## 🧰 Indeks komponen UI
 
 | Komponen | Untuk apa | Detail penggunaan |
 | --- | --- | --- |
@@ -26,6 +26,11 @@ Sebagian markup halaman, misalnya tabel `.table`, menu dropdown `.menu`, tab, sp
 | `combobox` | Cari dan pilih opsi lokal | [Combobox](/komponen/combobox) |
 | `date-range` | Preset dan input rentang tanggal | [Date range](/komponen/date-range) |
 | `drawer` | Panel dialog samping | [Drawer](/komponen/drawer) |
+| `filter-bar` | Form GET pencarian dan filter aktif | [Filter bar](/komponen/filter-bar) |
+| `detail-list` | Pasangan label/nilai untuk halaman detail | [Detail list](/komponen/detail-list) |
+| `timeline` | Riwayat peristiwa kronologis | [Timeline](/komponen/timeline) |
+| `tabs` | Tab underline, pill, dan soft | [Tabs](/komponen/tabs) |
+| `confirm-action` | Dialog konfirmasi dengan form POST/DELETE | [Confirm action](/komponen/confirm-action) |
 | `empty` | Keadaan kosong umum | [Empty](/komponen/empty) |
 | `field` | Label, petunjuk, dan error kontrol | [Field](/komponen/field) |
 | `file-preview` | Area pilih/seret file & pratinjau lokal | [File preview](/komponen/file-preview) |
@@ -45,3 +50,5 @@ Dengan `ADMIN_SHOWCASE=true`, halaman `/components/cards`, `/components/forms`, 
 :::
 
 Komponen tambahan di `resources/views/components/admin/` khusus untuk shell admin (sidebar, header, customizer). Umumnya gunakan `<x-layouts.admin>` ketimbang memanggilnya satu per satu.
+
+Contoh gabungan lima komponen baru tersedia pada `/components/data-patterns`; penjelasan alurnya ada di [pola data baru](/komponen/pola-data).

@@ -1,6 +1,6 @@
 # ⚡ Interaksi JavaScript
 
-`resources/js/app.js` mengimpor `bootstrap.js`, `admin/charts.js`, `admin/interactions.js`, dan `admin/advanced-inputs.js`. Tidak memerlukan framework frontend. Sebagian besar klik ditangani melalui event delegation pada dokumen; inisialisasi tabel dan grafik berjalan saat halaman dimuat.
+`resources/js/app.js` mengimpor `bootstrap.js`, `admin/charts.js`, `admin/interactions.js`, `admin/advanced-inputs.js`, dan `admin/enhanced-controls.js`. Tidak memerlukan framework frontend. Sebagian besar klik ditangani melalui event delegation pada dokumen; inisialisasi tabel dan grafik berjalan saat halaman dimuat.
 
 | Perilaku | Penanda pada markup | Lokasi |
 | --- | --- | --- |
@@ -12,6 +12,7 @@
 | Tabel | `data-table` dan atribut tabel lainnya | `interactions.js` |
 | Grafik | `data-chart` dan atribut data JSON | `charts.js` |
 | Combobox, rentang tanggal, preview berkas | `data-combobox`, `data-date-range`, `data-file-preview` | `advanced-inputs.js` |
+| Select searchable, kalender | `data-enhanced-select`, `data-date-picker` | `enhanced-controls.js` (Choices.js/Flatpickr) |
 | Form demo | `data-demo-form` | `advanced-inputs.js` |
 
 ## 🧪 Halaman demo vs form asli
@@ -23,5 +24,7 @@
 ## 🔄 Konten yang ditambahkan secara dinamis
 
 Setelah memasukkan elemen tabel atau grafik baru ke DOM, panggil `window.App.initPage(container)`; fungsi ini menginisialisasi tabel/grafik serta menyinkronkan preferensi. `advanced-inputs.js` melakukan query saat skrip pertama dimuat, sehingga combobox/date range/file preview yang disisipkan belakangan memerlukan inisialisasi tambahan dalam kode Anda.
+
+Untuk select searchable dan kalender yang disisipkan belakangan, panggil `window.EnhancedControls.init(container)`; elemen yang sudah diinisialisasi tidak dipasang ulang.
 
 Untuk Blade multi-halaman biasa, browser memuat ulang halaman sehingga inisialisasi awal berjalan otomatis. Kode router pratinjau satu-file (`window.__SPA__`) dalam `interactions.js` berasal dari template HTML dan tidak digunakan oleh route Blade Laravel.

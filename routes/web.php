@@ -19,6 +19,8 @@ if (config('kenanga.showcase')) {
         Route::view('/buttons', 'showcase.buttons')->name('buttons');
         Route::view('/feedback', 'showcase.feedback')->name('feedback');
         Route::view('/navigation', 'showcase.navigation')->name('navigation');
+        Route::view('/data-patterns', 'showcase.data-patterns')->name('data-patterns');
+        Route::post('/data-patterns/preview', fn () => redirect()->route('showcase.data-patterns')->with('status', 'Pratinjau konfirmasi selesai; tidak ada data yang dihapus.'))->name('data-patterns.preview');
     });
 
     Route::prefix('examples/records')->name('examples.records.')->group(function (): void {

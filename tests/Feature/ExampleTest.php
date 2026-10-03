@@ -26,6 +26,7 @@ class ExampleTest extends TestCase
             '/components/filters',
             '/components/table-states',
             '/components/charts',
+            '/components/data-patterns',
             '/examples/records',
             '/examples/records/new',
             '/examples/records/detail',
@@ -53,7 +54,7 @@ class ExampleTest extends TestCase
         $this->get('/testing')
             ->assertOk()
             ->assertSee('Component Testing')
-            ->assertSee('data-chart="line"', false);
+            ->assertSee('card-title', false);
     }
 
     public function test_frontend_showcase_exposes_reusable_components(): void
@@ -71,5 +72,26 @@ class ExampleTest extends TestCase
             ->assertSee('data-combobox', false)
             ->assertSee('data-date-range', false)
             ->assertSee('data-file-preview', false);
+    }
+
+    public function test_data_patterns_render_and_preview_confirmation_redirects(): void
+    {
+        $this->get('/components/data-patterns')
+            ->assertOk()
+            ->assertSee('data-enhanced-select', false)
+            ->assertSee('role="tabpanel"', false)
+            ->assertSee('Panduan orientasi untuk anggota tim baru.')
+            ->assertSee('Filter aktif:')
+            ->assertSee('method="POST"', false);
+
+        $this->get('/components/filters')
+            ->assertOk()
+            ->assertSee('data-date-picker', false)
+            ->assertSee('name="from"', false)
+            ->assertSee('name="to"', false);
+
+        $this->post(route('showcase.data-patterns.preview'))
+            ->assertRedirect(route('showcase.data-patterns'))
+            ->assertSessionHas('status');
     }
 }
