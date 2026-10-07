@@ -46,10 +46,19 @@ return [
         ['label' => 'Komponen', 'showcase' => true, 'items' => [
             ['label' => 'Kartu', 'route' => 'showcase.cards', 'active' => 'showcase.cards', 'icon' => 'grid'],
             ['label' => 'Tabel', 'route' => 'showcase.tables', 'active' => 'showcase.tables', 'icon' => 'table'],
+            ['label' => 'Status tabel', 'route' => 'showcase.table-states', 'active' => 'showcase.table-states', 'icon' => 'layers'],
             ['label' => 'Formulir', 'route' => 'showcase.forms', 'active' => 'showcase.forms', 'icon' => 'file-text'],
+            ['label' => 'Filter dan input', 'route' => 'showcase.filters', 'active' => 'showcase.filters', 'icon' => 'filter'],
+            ['label' => 'Grafik', 'route' => 'showcase.charts', 'active' => 'showcase.charts', 'icon' => 'pie'],
             ['label' => 'Tombol dan lencana', 'route' => 'showcase.buttons', 'active' => 'showcase.buttons', 'icon' => 'pointer'],
             ['label' => 'Umpan balik', 'route' => 'showcase.feedback', 'active' => 'showcase.feedback', 'icon' => 'message'],
             ['label' => 'Navigasi', 'route' => 'showcase.navigation', 'active' => 'showcase.navigation', 'icon' => 'compass'],
+            ['label' => 'Pola data', 'route' => 'showcase.data-patterns', 'active' => 'showcase.data-patterns', 'icon' => 'layers'],
+        ]],
+        ['label' => 'Contoh halaman', 'showcase' => true, 'items' => [
+            ['label' => 'Daftar entri', 'route' => 'examples.records.index', 'active' => 'examples.records.index', 'icon' => 'table'],
+            ['label' => 'Detail entri', 'route' => 'examples.records.show', 'active' => 'examples.records.show', 'icon' => 'eye'],
+            ['label' => 'Form entri', 'route' => 'examples.records.create', 'active' => 'examples.records.create', 'icon' => 'edit'],
         ]],
         ['label' => 'Halaman', 'items' => [
             ['label' => 'Pengaturan akun', 'route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'settings'],
@@ -72,6 +81,15 @@ return [
         ['value' => '0.5', 'name' => 'Sedang'], ['value' => '0.75', 'name' => 'Besar'], ['value' => '1', 'name' => 'Bulat'],
     ],
     'demo' => [
+        'records' => [
+            ['code' => 'ENT-001', 'title' => 'Panduan onboarding', 'category' => 'Panduan', 'owner' => 'Ayu Rahmawati', 'status' => 'Aktif', 'statusKey' => 'aktif', 'tone' => 'success', 'updated' => 'Hari ini'],
+            ['code' => 'ENT-002', 'title' => 'Catatan rapat tim', 'category' => 'Catatan', 'owner' => 'Bagas Prasetyo', 'status' => 'Draf', 'statusKey' => 'draf', 'tone' => 'warning', 'updated' => 'Kemarin'],
+            ['code' => 'ENT-003', 'title' => 'Checklist peluncuran', 'category' => 'Panduan', 'owner' => 'Maya Kusuma', 'status' => 'Ditinjau', 'statusKey' => 'ditinjau', 'tone' => 'info', 'updated' => '28 Sep 2026'],
+            ['code' => 'ENT-004', 'title' => 'Laporan bulanan', 'category' => 'Laporan', 'owner' => 'Rizky Hidayat', 'status' => 'Aktif', 'statusKey' => 'aktif', 'tone' => 'success', 'updated' => '27 Sep 2026'],
+            ['code' => 'ENT-005', 'title' => 'Arsip prosedur lama', 'category' => 'Arsip', 'owner' => 'Fajar Nugroho', 'status' => 'Arsip', 'statusKey' => 'arsip', 'tone' => 'neutral', 'updated' => '25 Sep 2026'],
+            ['code' => 'ENT-006', 'title' => 'Rencana kuartal depan', 'category' => 'Catatan', 'owner' => 'Ayu Rahmawati', 'status' => 'Draf', 'statusKey' => 'draf', 'tone' => 'warning', 'updated' => '24 Sep 2026'],
+            ['code' => 'ENT-007', 'title' => 'Standar layanan', 'category' => 'Panduan', 'owner' => 'Bagas Prasetyo', 'status' => 'Aktif', 'statusKey' => 'aktif', 'tone' => 'success', 'updated' => '23 Sep 2026'],
+        ],
         'users' => $users,
         'orders' => [
             ['id' => '#KK-2841', 'customer' => 'Dewi Anggraini', 'product' => 'Kopi Arabika Gayo 1 kg × 2', 'status' => 'Selesai', 'tone' => 'success', 'date' => '28 Sep 2026', 'total' => 'Rp 340.000', 'struck' => ''],

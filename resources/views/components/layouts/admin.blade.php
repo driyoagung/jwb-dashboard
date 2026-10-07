@@ -18,7 +18,7 @@
 </div>
 
 <x-admin.customizer />
-<div id="toasts" class="pointer-events-none fixed bottom-4 right-4 z-[70] flex w-full max-w-sm flex-col gap-2" aria-live="polite" aria-atomic="true"></div>
+<div id="toasts" class="pointer-events-none fixed bottom-4 right-4 z-[70] flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
 

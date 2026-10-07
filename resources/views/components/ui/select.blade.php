@@ -1,4 +1,4 @@
-@props(['name' => null, 'value' => null, 'placeholder' => null, 'invalid' => null, 'options' => [], 'includeBlank' => false])
+@props(['name' => null, 'value' => null, 'placeholder' => null, 'invalid' => null, 'options' => [], 'includeBlank' => false, 'searchable' => false])
 
 @php
     $id = $attributes->get('id', $name ? 'f-' . str_replace(['[', ']'], '-', $name) : null);
@@ -7,6 +7,7 @@
 @endphp
 
 <select name="{{ $name }}" @if ($id) id="{{ $id }}" @endif @if ($hasError) aria-invalid="true" @endif
+    @if ($searchable) data-enhanced-select data-placeholder="{{ $placeholder ?? 'Pilih pilihan' }}" @endif
     {{ $attributes->class(['select', 'input-invalid' => $hasError]) }}>
     @if ($placeholder || $includeBlank)
         <option value="">{{ $placeholder ?? '— Pilih —' }}</option>

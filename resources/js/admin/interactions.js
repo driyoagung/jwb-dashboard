@@ -367,6 +367,13 @@
 
     if (qi) qi.addEventListener('input', function () { st.q = qi.value.trim().toLowerCase(); st.page = 1; draw(); });
     if (fi) fi.addEventListener('change', function () { st.f = fi.value; st.page = 1; draw(); });
+    var reset = $('[data-demo-reset-table]', t);
+    if (reset) reset.addEventListener('click', function () {
+      if (qi) qi.value = '';
+      if (fi) fi.value = '';
+      st.q = ''; st.f = ''; st.page = 1; draw();
+      if (qi) qi.focus();
+    });
     ths.forEach(function (h) {
       h.tabIndex = 0;
       var go = function () {
@@ -384,6 +391,7 @@
      ===================================================== */
   function initPage(scope) {
     scope = scope || document;
+    if (window.EnhancedControls) EnhancedControls.init(scope);
     $$('[data-table]', scope).forEach(initTable);
     if (window.Charts) Charts.init(scope);
     markActive();
@@ -423,4 +431,3 @@
   syncPrefs();
   if (window.__SPA__) startSpa(); else initPage(document);
 })();
-
