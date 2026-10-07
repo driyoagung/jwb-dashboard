@@ -1,5 +1,7 @@
 # 📭 Empty
 
+<ComponentPreview name="empty" :height="290" />
+
 `<x-ui.empty>` adalah placeholder untuk bagian/halaman yang benar-benar belum memiliki konten, di luar tabel. Sumber: `resources/views/components/ui/empty.blade.php`.
 
 ## 🧩 API

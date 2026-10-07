@@ -1,5 +1,7 @@
 # 🪟 Modal
 
+<ComponentPreview name="modal" :height="170" />
+
 `<x-ui.modal>` membuat `<dialog>` untuk konfirmasi atau tindakan yang perlu perhatian khusus. Sumber: `resources/views/components/ui/modal.blade.php`; buka/tutup melalui `resources/js/admin/interactions.js`.
 
 ## 🧩 Prop dan slot

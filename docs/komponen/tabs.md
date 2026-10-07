@@ -1,5 +1,7 @@
 # 🗂️ Tabs
 
+<ComponentPreview name="tabs" :height="330" />
+
 `<x-ui.tabs>` menyediakan tab Blade dengan panel yang semuanya dirender server, lalu perpindahannya ditangani `resources/js/admin/interactions.js`. Sumber: `resources/views/components/ui/tabs.blade.php`.
 
 ## 🧩 Prop & slot bernama

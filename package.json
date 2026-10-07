@@ -4,8 +4,9 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "docs:dev": "vitepress dev docs",
-        "docs:build": "vitepress build docs",
+        "docs:previews": "npm run build && php artisan docs:previews",
+        "docs:dev": "npm run docs:previews && vitepress dev docs",
+        "docs:build": "npm run docs:previews && vitepress build docs",
         "docs:preview": "vitepress preview docs"
     },
     "devDependencies": {

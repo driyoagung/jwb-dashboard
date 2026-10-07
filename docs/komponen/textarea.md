@@ -1,5 +1,7 @@
 # 📝 Textarea
 
+<ComponentPreview name="textarea" :height="245" />
+
 `<x-ui.textarea>` menampilkan input multi-baris dengan nilai lama `old()` dan status invalid otomatis. Sumber: `resources/views/components/ui/textarea.blade.php`.
 
 ## 🧩 API

@@ -1,5 +1,7 @@
 # 🗄️ Drawer
 
+<ComponentPreview name="drawer" :height="170" />
+
 `<x-ui.drawer>` adalah dialog berbentuk panel samping dengan header, area isi yang bisa discroll, dan footer opsional. Sumber: `resources/views/components/ui/drawer.blade.php`.
 
 ## 🧩 API

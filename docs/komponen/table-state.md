@@ -1,5 +1,7 @@
 # 📋 Table state
 
+<ComponentPreview name="table-state" :height="610" />
+
 `<x-ui.table-state>` menampilkan feedback untuk tabel dan area data: skeleton, tidak ada data, tidak ada hasil filter, atau gagal memuat. Sumber: `resources/views/components/ui/table-state.blade.php`.
 
 ## 🧩 Prop dan state

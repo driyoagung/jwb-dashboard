@@ -1,5 +1,7 @@
 # 📊 Stat card
 
+<ComponentPreview name="stat-card" :height="235" />
+
 `<x-ui.stat-card>` menampilkan angka KPI, ikon, delta, perbandingan, dan sparkline opsional. Sumber: `resources/views/components/ui/stat-card.blade.php`; contoh pada `/dashboard` dan `/components/cards`.
 
 ## 🧩 Prop
@@ -16,6 +18,8 @@
 Atribut tambahan pada tag diteruskan ke pembungkus kartu. `delta` selalu ditampilkan meskipun bernilai kosong; atur isinya sesuai perbandingan yang sebenarnya.
 
 ## 📈 Pertumbuhan dan penurunan
+
+Untuk variasi tile dan warna seperti `/components/cards`, preview di atas menampilkan kartu naik/turun. Kode yang bisa langsung dipakai:
 
 ```blade
 <div class="grid gap-4 sm:grid-cols-2">

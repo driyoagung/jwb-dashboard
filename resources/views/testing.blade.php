@@ -11,6 +11,18 @@
         </h1>
 
         <hr>
+        <x-ui.timeline :items="[
+            [
+                'title' => 'Pesanan selesai',
+                'time' => 'Hari ini, 10.30',
+                'datetime' => '2026-10-03T10:30:00',
+                'tone' => 'success',
+            ],
+            ['title' => 'Paket dikirim', 'time' => 'Kemarin', 'description' => 'Kurir menerima paket.'],
+            ['title' => 'Pembayaran gagal', 'time' => '1 Okt 2026', 'tone' => 'danger'],
+        ]" />
+
+
         <x-ui.card class="min-w-0">
             <x-slot:header>
                 <div class="flex items-center justify-between gap-3">
@@ -22,7 +34,7 @@
                 </div>
             </x-slot:header>
             <p class="text-muted-foreground">{{ $orderSummary }}</p>
-        </x-ui.card >
+        </x-ui.card>
     </div>
 
     </div>

@@ -1,5 +1,7 @@
 # 🔎 Combobox
 
+<ComponentPreview name="combobox" :height="310" />
+
 `<x-ui.combobox>` menyediakan pencarian opsi lokal dengan input teks dan input tersembunyi untuk nilai form. Sumber Blade: `resources/views/components/ui/combobox.blade.php`; perilaku: `resources/js/admin/advanced-inputs.js`.
 
 ## 🧩 Prop dan bentuk opsi

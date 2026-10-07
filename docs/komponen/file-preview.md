@@ -1,5 +1,7 @@
 # 📎 File preview
 
+<ComponentPreview name="file-preview" :height="310" />
+
 `<x-ui.file-preview>` menampilkan area pilih/seret berkas, thumbnail gambar, metadata file, tombol hapus dan pesan error lokal. Sumber: `resources/views/components/ui/file-preview.blade.php`; logika: `resources/js/admin/advanced-inputs.js`.
 
 ## 🧩 Prop

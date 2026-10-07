@@ -1,5 +1,7 @@
 # 📰 Page header
 
+<ComponentPreview name="page-header" :height="170" />
+
 `<x-ui.page-header>` merender pembungkus berisi `<h1>` dan deskripsi opsional. Sumber: `resources/views/components/ui/page-header.blade.php`.
 
 ## 🧩 API

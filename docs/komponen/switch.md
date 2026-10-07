@@ -1,5 +1,7 @@
 # 🔀 Switch
 
+<ComponentPreview name="switch" :height="180" />
+
 `<x-ui.switch>` adalah checkbox berpenampilan toggle untuk nilai on/off. Sumber: `resources/views/components/ui/switch.blade.php`.
 
 ## 🧩 Prop dan HTML yang dikirim

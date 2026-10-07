@@ -1,5 +1,7 @@
 # 🔎 Filter bar
 
+<ComponentPreview name="filter-bar" :height="310" />
+
 `<x-ui.filter-bar>` adalah form GET reusable untuk pencarian dan filter halaman daftar. Sumber: `resources/views/components/ui/filter-bar.blade.php`.
 
 ## 🧩 Prop & slot

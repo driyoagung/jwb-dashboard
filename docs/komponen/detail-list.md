@@ -1,5 +1,7 @@
 # 📑 Detail list
 
+<ComponentPreview name="detail-list" :height="270" />
+
 `<x-ui.detail-list>` menampilkan pasangan label/nilai dalam `<dl>` semantik. Cocok untuk detail entri, profil, atau metadata pesanan. Sumber: `resources/views/components/ui/detail-list.blade.php`.
 
 ## 🧩 API

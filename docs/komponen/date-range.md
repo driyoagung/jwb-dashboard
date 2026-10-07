@@ -1,5 +1,7 @@
 # 📅 Date range
 
+<ComponentPreview name="date-range" :height="390" />
+
 `<x-ui.date-range>` menyajikan preset 7/30 hari dan dua input tanggal yang ditingkatkan oleh Flatpickr. Sumber: `resources/views/components/ui/date-range.blade.php`, `resources/js/admin/advanced-inputs.js`, dan `enhanced-controls.js`.
 
 ## 🧩 API

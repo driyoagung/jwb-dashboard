@@ -1,5 +1,7 @@
 # 🛡️ Confirm action
 
+<ComponentPreview name="confirm-action" :height="170" />
+
 `<x-ui.confirm-action>` membungkus [modal](/komponen/modal) dengan form Laravel untuk tindakan yang memerlukan konfirmasi. Sumber: `resources/views/components/ui/confirm-action.blade.php`.
 
 ## 🧩 Prop

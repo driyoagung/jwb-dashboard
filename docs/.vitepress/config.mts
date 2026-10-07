@@ -23,6 +23,7 @@ export default defineConfig({
           { text: '🧩 Struktur & Blade', link: '/panduan/struktur' },
           { text: '🧭 Halaman & navigasi', link: '/panduan/halaman' },
           { text: '🎨 Tema & aset', link: '/panduan/tema' },
+          { text: '👁️ Preview komponen', link: '/panduan/preview' },
         ],
       },
       {

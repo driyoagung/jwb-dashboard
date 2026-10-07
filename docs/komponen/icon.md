@@ -1,5 +1,7 @@
 # 🧿 Icon
 
+<ComponentPreview name="icon" :height="190" />
+
 `<x-ui.icon>` merender SVG `<use>` yang menunjuk `public/icons.svg#i-{name}`. Sumber: `resources/views/components/ui/icon.blade.php`.
 
 ## 🧩 Prop dan sumber simbol

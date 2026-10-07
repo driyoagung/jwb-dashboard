@@ -1,5 +1,7 @@
 # 📢 Alert
 
+<ComponentPreview name="alert" :height="510" />
+
 `<x-ui.alert>` adalah pesan **inline** yang tetap berada di halaman, berbeda dengan toast yang hilang setelah beberapa detik. Sumber: `resources/views/components/ui/alert.blade.php`.
 
 ## 🧩 Prop dan slot

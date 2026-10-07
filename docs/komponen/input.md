@@ -1,5 +1,7 @@
 # ⌨️ Input
 
+<ComponentPreview name="input" :height="245" />
+
 `<x-ui.input>` merender `<input>` (atau input di dalam `.input-group` bila ada `icon`/`addon`) dengan dukungan `old()` dan error Laravel. Sumber: `resources/views/components/ui/input.blade.php`.
 
 ## 🧩 Prop dan atribut

@@ -1,5 +1,7 @@
 # 📄 Pagination
 
+<ComponentPreview name="pagination" :height="130" />
+
 `<x-ui.pagination>` adalah rancangan tampilan paginator pada `resources/views/components/ui/pagination.blade.php`. **Saat ini belum siap dipakai langsung**: file menerima `paginator`, tetapi loop nomor halaman merujuk `$elements` tanpa mengisinya. Komponen juga mengharapkan `total()` sehingga lebih dekat ke `paginate()` daripada `simplePaginate()`/`cursorPaginate()`.
 
 ## 🧩 API yang dirancang

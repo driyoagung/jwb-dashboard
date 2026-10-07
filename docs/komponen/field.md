@@ -1,5 +1,7 @@
 # 🧷 Field
 
+<ComponentPreview name="field" :height="185" />
+
 `<x-ui.field>` menggabungkan label, kontrol pada slot, pesan bantuan, dan error validasi Laravel. Sumber: `resources/views/components/ui/field.blade.php`.
 
 ## 🧩 Kontrak prop

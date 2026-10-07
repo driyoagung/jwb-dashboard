@@ -1,5 +1,7 @@
 # 🕒 Timeline
 
+<ComponentPreview name="timeline" :height="285" />
+
 `<x-ui.timeline>` menampilkan urutan aktivitas dalam `<ol>` semantik. Sumber: `resources/views/components/ui/timeline.blade.php`.
 
 ## 🧩 Bentuk data

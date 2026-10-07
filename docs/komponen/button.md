@@ -1,5 +1,7 @@
 # 🔘 Button
 
+<ComponentPreview name="button" :height="220" />
+
 `<x-ui.button>` merender `<button>` dengan gaya yang konsisten. Sumber: `resources/views/components/ui/button.blade.php`; contoh visual: `/components/buttons`.
 
 ## 🧩 API dan elemen yang dihasilkan

@@ -1,5 +1,7 @@
 # 🔽 Select
 
+<ComponentPreview name="select" :height="330" />
+
 `<x-ui.select>` membungkus `<select>` HTML dan mendukung pilihan dari array PHP, placeholder, nilai lama dari form, serta error Laravel. Sumber: `resources/views/components/ui/select.blade.php`.
 
 ## 🧩 Prop

@@ -1,5 +1,7 @@
 # 🏷️ Badge
 
+<ComponentPreview name="badge" :height="200" />
+
 `<x-ui.badge>` menampilkan label status sebagai `<span>`; bukan tautan atau tombol. Sumber: `resources/views/components/ui/badge.blade.php`.
 
 ## 🧩 Prop dan pilihan variant

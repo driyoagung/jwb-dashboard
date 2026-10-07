@@ -52,3 +52,7 @@ Dengan `ADMIN_SHOWCASE=true`, halaman `/components/cards`, `/components/forms`, 
 Komponen tambahan di `resources/views/components/admin/` khusus untuk shell admin (sidebar, header, customizer). Umumnya gunakan `<x-layouts.admin>` ketimbang memanggilnya satu per satu.
 
 Contoh gabungan lima komponen baru tersedia pada `/components/data-patterns`; penjelasan alurnya ada di [pola data baru](/komponen/pola-data).
+
+## 👁️ Preview di atas kode
+
+Setiap halaman komponen menampilkan preview Blade mandiri di atas contoh kode. Preview memakai hasil render komponen asli, CSS dashboard dan JavaScript interaktif; klik tombol, pilih select, atau buka modal langsung di iframe. File dibuat oleh `npm run docs:previews` saat menjalankan `npm run docs:dev` atau `npm run docs:build`. Detailnya ada di [panduan preview](/panduan/preview).

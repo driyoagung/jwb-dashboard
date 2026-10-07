@@ -1,5 +1,7 @@
 # 📈 Chart
 
+<ComponentPreview name="chart" :height="740" />
+
 `<x-ui.chart>` menaruh konfigurasi grafik pada atribut `data-*`; `resources/js/admin/charts.js` menggambar SVG saat halaman siap. Tidak ada dependensi chart eksternal. File komponen: `resources/views/components/ui/chart.blade.php`.
 
 ## 🧩 API dan bentuk data
