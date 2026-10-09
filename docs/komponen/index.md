@@ -38,7 +38,7 @@ Sebagian markup halaman, misalnya tabel `.table`, menu dropdown `.menu`, tab, sp
 | `input` | Input HTML termasuk ikon/addon | [Input](/komponen/input) |
 | `modal` | Dialog tengah untuk tugas terfokus | [Modal](/komponen/modal) |
 | `page-header` | Judul utama dan keterangan halaman | [Page header](/komponen/page-header) |
-| `pagination` | Rancangan navigasi halaman (belum siap pakai) | [Pagination](/komponen/pagination) |
+| `pagination` | Navigasi halaman server dengan gaya Kenanga | [Pagination](/komponen/pagination) |
 | `select` | Select dengan opsi dari array | [Select](/komponen/select) |
 | `stat-card` | Angka, delta, ikon & sparkline | [Stat card](/komponen/stat-card) |
 | `switch` | Checkbox berpenampilan toggle | [Switch](/komponen/switch) |

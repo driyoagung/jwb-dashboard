@@ -10,6 +10,7 @@
 | --- | --- | --- |
 | `name` | wajib | Akhiran ID sprite (`search` → `i-search`) |
 | `class` | `h-4 w-4` | Ukuran dan kelas warna/posisi SVG |
+| `useClass` | `null` | Kelas pada elemen `<use>` untuk interaksi yang mengganti simbol, misalnya `js-theme-icon` di login |
 
 SVG bawaan memiliki `aria-hidden="true"` dan `focusable="false"`. Ikon tidak menyampaikan teks alternatif sendiri; label aksi harus berada pada tombol/tautan induk.
 

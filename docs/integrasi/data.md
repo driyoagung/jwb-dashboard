@@ -30,10 +30,10 @@ public function index(Request $request): View
 </form>
 
 {{-- Render tabel HTML memakai $records; jangan beri data-table pada wrapper. --}}
-{{ $records->links() }}
+<x-ui.pagination :paginator="$records" />
 ```
 
-Jika memakai `x-ui.table-state` sebagai fallback, bedakan tabel yang belum berisi data (`empty`) dengan tabel yang kosong karena pencarian (`filtered`). Untuk sorting dari server, terima hanya nama kolom yang diizinkan (allowlist) sebelum meneruskannya ke `orderBy`; jangan gunakan nama kolom bebas dari input request. `x-ui.pagination` yang tersedia belum terhubung benar ke `$elements` paginator; gunakan `$records->links()` sampai komponen itu disempurnakan.
+Jika memakai `x-ui.table-state` sebagai fallback, bedakan tabel yang belum berisi data (`empty`) dengan tabel yang kosong karena pencarian (`filtered`). Untuk sorting dari server, terima hanya nama kolom yang diizinkan (allowlist) sebelum meneruskannya ke `orderBy`; jangan gunakan nama kolom bebas dari input request. `x-ui.pagination` memakai `LengthAwarePaginator` dari `paginate()` dan menjaga tampilan Kenanga pada navigasi server.
 
 ## 📈 Siapkan grafik dari data nyata
 

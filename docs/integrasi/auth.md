@@ -1,28 +1,23 @@
-# 🔐 Autentikasi & produksi
+# Autentikasi dan persiapan produksi
 
-Halaman `/login` saat ini hanyalah presentasi: tombol “Masuk” berupa tautan ke dashboard; kolom email/password bukan form yang mengirim kredensial. Route dashboard juga belum memakai middleware autentikasi. Integrasikan fitur login dari pilihan autentikasi Laravel proyek Anda atau implementasikan controller/session sendiri sebelum memakai halaman ini sebagai gerbang akses.
+`/login` sekarang memakai `AuthController`, `LoginRequest`, session Laravel, dan form Blade dengan komponen Kenanga. POST `/login` diberi throttle, sesi diregenerasi setelah berhasil, dan POST `/logout` mengakhiri sesi. Belum ada registrasi publik, reset password, atau sistem role umum. Akun perlu dibuat melalui proses provisioning proyek.
 
-## 🔑 Hubungkan view login
+Route `/reference/records` memakai middleware `auth` dan policy kepemilikan sebagai contoh CRUD nyata di `.agent/docs/implementasi/referensi-crud.md`. Route `/dashboard`, `/analytics`, `/settings`, serta showcase bawaan masih terbuka agar template dapat dijelajahi. **Jangan menganggap login saat ini melindungi seluruh dashboard.** Saat memakai starter kit untuk proyek privat, kelompokkan seluruh route privat dalam middleware `auth` dan tentukan policy/guard sesuai kontrak role di `.agent/docs/standar/kontrak-role.md`.
 
-Saat membangun login sesungguhnya, ubah blok input di `resources/views/auth/login.blade.php` menjadi form `method="POST"` yang mengirim ke `route('login.store')`, dengan `@csrf`, kontrol dengan `name="email"` dan `name="password"`, opsi `remember` bila digunakan, serta tombol submit “Masuk”. Gunakan `old('email')` dan `$errors` untuk menampilkan kegagalan autentikasi. Route bernama `login.store` pada contoh ini **harus Anda daftarkan sendiri** atau sesuaikan dengan paket autentikasi yang dipilih.
-
-Controller login harus memvalidasi input, menjalankan autentikasi Laravel, dan meregenerasi sesi setelah berhasil. Logout harus mengakhiri sesi dan meregenerasi token CSRF. Jika menggunakan starter kit/paket autentikasi yang sudah menyediakan route login bernama `login`, periksa konflik dengan `Route::view('/login', 'auth.login')->name('login')` yang ada sekarang dan ganti route tersebut sesuai instalasi Anda.
-
-## 🛡️ Lindungi route admin
-
-Setelah login tersedia, tambahkan middleware `auth` pada halaman privat (misalnya dashboard, analitik, settings, serta CRUD). Jangan memasukkan route login atau halaman 404 publik ke dalam grup ini.
+## Melindungi fitur proyek
 
 ```php
-Route::middleware('auth')->group(function () {
-    Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
-    Route::view('/analytics', 'admin.analytics')->name('admin.analytics');
-    Route::view('/settings', 'admin.settings')->name('admin.settings');
-    // Route CRUD privat yang ditambahkan di sini.
+Route::middleware('auth')->group(function (): void {
+    Route::get('/products', [ProductController::class, 'index'])
+        ->name('admin.products.index');
+    // Tambahkan route privat lain di sini.
 });
 ```
 
-Lindungi juga setiap operasi tulis dengan pemeriksaan izin sesuai aturan proyek. Identitas pengguna di sidebar (`resources/views/components/admin/sidebar.blade.php`) dan sebagian info di header masih teks contoh; tampilkan identitas dari `auth()->user()` setelah route benar-benar terlindungi.
+Setiap aksi tulis/baca sensitif memerlukan policy/gate di samping middleware `auth`. Filter query sesuai user atau workspace sebelum pagination. Identitas user pada sidebar dan beberapa notifikasi header masih data demo; hubungkan ke `auth()->user()` dan sumber data aplikasi saat shell dipakai dalam produksi. Periksa juga menu atau tautan ke route showcase sebelum mengatur `ADMIN_SHOWCASE=false`.
 
-## 🚢 Saat deploy
+Jika memasang paket autentikasi lain, periksa konflik route bernama `login`, `login.store`, dan `logout` dengan route bawaan sebelum menggantinya. Jangan menyimpan password atau token di source code. Di produksi, gunakan `APP_DEBUG=false`, HTTPS/session cookie yang sesuai, dan proses provisioning akun yang aman.
 
-Siapkan `.env` produksi dan database aplikasi, jalankan migrasi sesuai skema baru, lalu bangun aset Laravel dengan `npm run build`. Dokumentasi dibangun terpisah lewat `npm run docs:build` menjadi berkas statis di `docs/.vitepress/dist`; Anda bisa menerbitkannya sebagai situs dokumentasi statis tanpa mengarahkan request docs ke Laravel. Gunakan `ADMIN_SHOWCASE=false` jika katalog contoh tidak ingin ditampilkan pada aplikasi produksi, dan periksa tautan menuju showcase sebelum menonaktifkannya.
+## Verifikasi
+
+Feature test di `tests/Feature/ReferenceRecordFeatureTest.php` membuktikan guest diarahkan ke login, sesi login/logout bekerja, dan user lain mendapat 403 pada record yang bukan miliknya. Tambahkan test untuk role dan resource proyek Anda. Jalankan `php artisan test`, `php artisan view:cache`, dan `npm run build` sebelum deploy.

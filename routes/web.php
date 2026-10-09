@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ReferenceRecordController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -23,6 +25,16 @@ if (config('kenanga.showcase')) {
         Route::post('/data-patterns/preview', fn () => redirect()->route('showcase.data-patterns')->with('status', 'Pratinjau konfirmasi selesai; tidak ada data yang dihapus.'))->name('data-patterns.preview');
     });
 
+    Route::middleware('auth')->prefix('reference/records')->name('reference.records.')->group(function (): void {
+        Route::get('/', [ReferenceRecordController::class, 'index'])->name('index');
+        Route::get('/new', [ReferenceRecordController::class, 'create'])->name('create');
+        Route::post('/', [ReferenceRecordController::class, 'store'])->name('store');
+        Route::get('/{record}', [ReferenceRecordController::class, 'show'])->name('show');
+        Route::get('/{record}/edit', [ReferenceRecordController::class, 'edit'])->name('edit');
+        Route::put('/{record}', [ReferenceRecordController::class, 'update'])->name('update');
+        Route::delete('/{record}', [ReferenceRecordController::class, 'destroy'])->name('destroy');
+    });
+
     Route::prefix('examples/records')->name('examples.records.')->group(function (): void {
         Route::view('/', 'examples.records.index')->name('index');
         Route::view('/new', 'examples.records.create')->name('create');
@@ -31,6 +43,8 @@ if (config('kenanga.showcase')) {
     });
 }
 
-Route::view('/login', 'auth.login')->name('login');
+Route::get('/login', [AuthController::class, 'create'])->name('login');
+Route::post('/login', [AuthController::class, 'store'])->middleware('throttle:5,1')->name('login.store');
+Route::post('/logout', [AuthController::class, 'destroy'])->middleware('auth')->name('logout');
 Route::view('/demo/404', 'errors.404')->name('demo.404');
 Route::view('/testing', 'testing')->name('testing');

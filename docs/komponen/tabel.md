@@ -70,7 +70,7 @@ Pencarian membandingkan teks semua sel kecuali sel terakhir (biasanya kolom aksi
 </x-ui.table-state>
 ```
 
-`x-ui.empty` adalah tampilan kosong umum dengan prop `icon`, `title`, `description` dan slot aksi. `x-ui.pagination` **belum digunakan di halaman showcase**; implementasinya memakai `$elements` tanpa membangunnya dari paginator, jadi jangan mengandalkannya langsung untuk output `$records->links()` sebelum disesuaikan. Untuk integrasi sekarang, gunakan `$records->links()` milik Laravel atau buat partial pagination sendiri.
+`x-ui.empty` adalah tampilan kosong umum dengan prop `icon`, `title`, `description` dan slot aksi. `x-ui.pagination` sekarang menampilkan tautan halaman dari `LengthAwarePaginator`; lihat [pagination](/komponen/pagination) dan contoh CRUD tersimpan di `resources/views/reference/records/index.blade.php`.
 
 ### 🗃️ `x-ui.empty` {#x-ui-empty}
 
@@ -85,6 +85,6 @@ Gunakan untuk keadaan tanpa konten di luar konteks tabel, misalnya halaman pesan
 
 Nama route `products.create` di atas adalah contoh route aplikasi yang perlu Anda buat, bukan route bawaan starter kit.
 
-### 📄 `x-ui.pagination` (belum siap pakai) {#x-ui-pagination-belum-siap-pakai}
+### 📄 `x-ui.pagination` {#x-ui-pagination}
 
-Berkas komponennya menerima prop `paginator` dan memanggil `hasPages()`, `firstItem()`, `lastItem()`, `total()` dan URL sebelum/sesudah. Namun loop angka halamannya memakai `$elements` yang tidak didefinisikan di komponen tersebut. Saat mengembangkan komponen ini, bangun daftar elemen halaman dari paginator atau gunakan view pagination Laravel yang lengkap. Untuk `cursorPaginate()`, kontrak `total()`/`lastItem()` juga berbeda; contoh docs ini menggunakan `paginate()`.
+Komponen menerima `paginator` bertipe `LengthAwarePaginator` dari `paginate()`. Nomor halaman dibuat oleh `Illuminate\Pagination\UrlWindow`; teks jumlah, tautan sebelumnya/berikutnya, elipsis, dan halaman aktif mengikuti gaya Kenanga. Gunakan `<x-ui.pagination :paginator="$records" />` setelah tabel server-side. `simplePaginate()` dan `cursorPaginate()` memerlukan pola navigasi lain karena tidak menyediakan total dan semua nomor halaman.

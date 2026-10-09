@@ -1,23 +1,22 @@
-# 🔌 Peta integrasi backend
+# Peta integrasi backend
 
-Starter kit ini adalah tampilan Laravel Blade: saat ini `routes/web.php` memakai `Route::view`, data contoh berasal dari `config/kenanga.php`, dan beberapa form hanya menampilkan toast. Anda dapat mempertahankan komponen tampilannya saat menambahkan backend sendiri.
+Starter kit menyediakan halaman Blade dengan data demo dan satu contoh CRUD tersimpan di `/reference/records`. Contoh tersebut memakai login session, Form Request, policy kepemilikan, query server, dan komponen Kenanga. Halaman `/examples/records` serta showcase tetap contoh frontend. Lihat juga `.agent/docs/implementasi/referensi-crud.md` untuk jalur kode yang bisa ditiru.
 
-| Yang ada sekarang | Saat memakai data nyata |
+| Bagian demo | Saat memakai data nyata |
 | --- | --- |
-| `Route::view` untuk halaman demo | Route ke controller dan kirim variabel ke view |
-| `config('kenanga.demo.records')` | Query model atau sumber data aplikasi |
-| Form dengan `data-demo-form` | Form `POST`/`PUT` + `@csrf` + validasi + redirect |
-| Tabel `data-table` | Paginasi/filter dari database untuk dataset besar |
-| Grafik dengan array statis | Agregasi controller ke prop `labels`/`series` |
-| Link “Masuk” ke dashboard | Route login, guard/session, dan middleware `auth` |
+| `Route::view` untuk dashboard/showcase | Route ke controller dan kirim data ke Blade |
+| `config('kenanga.demo.records')` | Query model sesuai user/workspace |
+| Form `data-demo-form` | Form `POST`/`PUT` + `@csrf`, Form Request, policy, redirect |
+| Tabel `data-table` | Filter dan pagination database untuk dataset besar |
+| Grafik array statis | Agregasi controller ke `x-ui.chart` |
+| Profil sidebar/notifikasi contoh | Identitas dari user login dan data aplikasi |
 | Unggah pratinjau lokal | Nama input, validasi file, penyimpanan pada disk |
 
-## 🗺️ Urutan kerja yang disarankan
+## Urutan kerja
 
-1. Baca [struktur & Blade](/panduan/struktur) untuk memahami layout dan prop.
-2. Ikuti [contoh CRUD](/integrasi/crud) untuk route, model, controller, dan daftar entri.
-3. Sambungkan [form & validasi](/integrasi/form).
-4. Untuk data besar dan visualisasi, gunakan [tabel & grafik server](/integrasi/data).
-5. Terakhir pasang [autentikasi & persiapan produksi](/integrasi/auth).
+1. Baca [struktur Blade](/panduan/struktur) dan [komponen](/komponen/).
+2. Pelajari CRUD referensi yang berjalan; gunakan [panduan CRUD](/integrasi/crud) untuk penjelasan domain contoh lain.
+3. Sambungkan [form & validasi](/integrasi/form) serta [tabel & grafik server](/integrasi/data).
+4. Tentukan role, lindungi route dashboard yang privat, dan ikuti [autentikasi & produksi](/integrasi/auth).
 
-Contoh di bagian ini adalah **kode contoh untuk ditambahkan**. Nama model, tabel, kolom, dan route yang digunakan tidak tersedia otomatis di starter kit. Cocokkan dengan domain aplikasi Anda.
+Contoh kode pada panduan integrasi umumnya perlu disesuaikan dengan domain proyek. Model `Record` pada panduan CRUD lama adalah ilustrasi dan berbeda dari `ReferenceRecord` yang sudah diimplementasikan.

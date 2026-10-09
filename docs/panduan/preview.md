@@ -17,4 +17,4 @@ Preview berada di atas blok kode. Cocokkan bentuk, interaksi, dan state pada pre
 
 ## 🔒 Batas pratinjau
 
-Form di iframe dicegah melakukan submit agar tidak mengubah data. Untuk confirm action, dialog dan tombol submit bisa dicoba tanpa memanggil route. Data preview adalah contoh lokal; penggunaan sesungguhnya tetap mengikuti route, model, validasi, dan CSRF aplikasi. `x-ui.pagination` sengaja menampilkan pesan keterbatasan karena komponen tersebut belum siap menerima paginator secara utuh. Tema iframe mengikuti pilihan terang/gelap VitePress.
+Form di iframe dicegah melakukan submit agar tidak mengubah data. Untuk confirm action, dialog dan tombol submit bisa dicoba tanpa memanggil route. Data preview adalah contoh lokal; penggunaan sesungguhnya tetap mengikuti route, model, validasi, dan CSRF aplikasi. `x-ui.pagination` menampilkan navigasi halaman dari paginator contoh dengan gaya Kenanga. Tema iframe mengikuti pilihan terang/gelap VitePress.

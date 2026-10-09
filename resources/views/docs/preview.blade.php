@@ -72,7 +72,8 @@
         <div class="preview-grid"><div class="card"><x-ui.table-state state="empty" /></div><div class="card"><x-ui.table-state state="filtered" title="Tidak ada hasil"><x-ui.button variant="outline" size="sm">Hapus filter</x-ui.button></x-ui.table-state></div></div>
         <div class="preview-grid"><div class="card"><x-ui.table-state state="error" title="Data gagal dimuat"><x-ui.button variant="outline" size="sm">Coba lagi</x-ui.button></x-ui.table-state></div><div class="card"><x-ui.table-state state="loading" /></div></div>
 @elseif($previewName === 'pagination')
-        <p class="text-sm text-muted-foreground">Komponen ini masih membutuhkan implementasi elemen halaman. Gunakan paginator Laravel: <code>$records->links()</code>.</p>
+        @php($paginator = new \Illuminate\Pagination\LengthAwarePaginator(range(21, 30), 75, 10, 3, ['path' => '#']))
+        <div class="card"><x-ui.pagination :paginator="$paginator" /></div>
 @elseif($previewName === 'page-header')
         <x-ui.page-header title="Pesanan" description="Pantau dan kelola seluruh pesanan toko." />
 @elseif($previewName === 'icon')

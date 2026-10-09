@@ -144,4 +144,4 @@ View bawaan memakai `config('kenanga.demo.records')` dan link detail statis `/de
 @endforelse
 ```
 
-Setelah tabel, tampilkan hasil `$records->links()` dan lepaskan `data-table` untuk paginasi server. Di view detail/edit, ganti konten statis dan link `/detail`/`/edit` dengan `$record` dan `route('examples.records.edit', $record)`. Contoh form tersambung ada di [form & validasi](/integrasi/form).
+Setelah tabel, tampilkan `<x-ui.pagination :paginator="$records" />` dan lepaskan `data-table` untuk paginasi server. Di view detail/edit, ganti konten statis dan link `/detail`/`/edit` dengan `$record` dan `route('examples.records.edit', $record)`. Contoh form tersambung ada di [form & validasi](/integrasi/form).
