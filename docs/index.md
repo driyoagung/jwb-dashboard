@@ -23,7 +23,7 @@ features:
     link: /komponen/
     linkText: Buka referensi
   - title: 🔌 Jalur ke data nyata
-    details: Ubah Route::view, data config, form demo, tabel client-side, dan login menjadi alur Laravel.
+    details: Tiru CRUD referensi yang tersimpan, lalu sambungkan halaman demo lain ke data dan akses proyek Anda.
     link: /integrasi/
     linkText: Lihat panduan integrasi
 ---

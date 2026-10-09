@@ -57,6 +57,7 @@ return [
         ]],
         ['label' => 'Contoh halaman', 'showcase' => true, 'items' => [
             ['label' => 'Daftar entri', 'route' => 'examples.records.index', 'active' => 'examples.records.index', 'icon' => 'table'],
+            ['label' => 'CRUD tersimpan', 'route' => 'reference.records.index', 'active' => 'reference.records.*', 'icon' => 'layers'],
             ['label' => 'Detail entri', 'route' => 'examples.records.show', 'active' => 'examples.records.show', 'icon' => 'eye'],
             ['label' => 'Form entri', 'route' => 'examples.records.create', 'active' => 'examples.records.create', 'icon' => 'edit'],
         ]],

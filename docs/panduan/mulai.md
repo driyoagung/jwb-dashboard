@@ -51,7 +51,8 @@ Build aplikasi dan dokumentasi adalah dua perintah terpisah: `npm run build` mem
 | `/components/*` | Showcase komponen Blade dan pola HTML/CSS |
 | `/components/data-patterns` | Filter bar, detail list, timeline, tabs, konfirmasi aksi |
 | `/examples/records/*` | Contoh daftar, detail, tambah, dan edit entri |
-| `/login`, `/demo/404` | Tampilan tamu dan halaman kesalahan |
+| `/login`, `/demo/404` | Login session dan halaman kesalahan |
+| `/reference/records/*` | CRUD tersimpan khusus user login; tersedia saat `ADMIN_SHOWCASE=true` |
 
 Showcase dan contoh entri hanya tersedia saat `ADMIN_SHOWCASE=true`. Detail route ada di `routes/web.php` dan dijelaskan dalam [halaman & navigasi](/panduan/halaman).
 

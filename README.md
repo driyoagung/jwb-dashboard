@@ -31,6 +31,7 @@ php artisan optimize
 - `resources/views/admin` — dashboard, analitik, dan pengaturan akun.
 - `resources/views/showcase` — katalog komponen untuk referensi saat membangun proyek baru.
 - `resources/views/examples/records` — contoh alur daftar, detail, tambah, dan edit yang sepenuhnya frontend.
+- `resources/views/reference/records` — contoh CRUD tersimpan dengan komponen Kenanga.
 - `resources/js/admin` — grafik SVG dan interaksi dashboard.
 - `resources/css/app.css` — design tokens, tema, dan component styles.
 - `config/kenanga.php` — branding, navigasi, pilihan tema, serta data demo.
@@ -50,10 +51,11 @@ php artisan optimize
 | `/examples/records/new` | `examples.records.create` | Contoh form tambah |
 | `/examples/records/detail` | `examples.records.show` | Contoh halaman detail |
 | `/examples/records/edit` | `examples.records.edit` | Contoh form edit |
-| `/login` | `login` | Tampilan masuk |
+| `/login` | `login` | Login session untuk akun yang sudah ada |
+| `/reference/records` | `reference.records.index` | CRUD tersimpan; perlu login dan `ADMIN_SHOWCASE=true` |
 | `/demo/404` | `demo.404` | Demo halaman 404 |
 
-Halaman login dan semua contoh data masih berupa presentational UI. Form contoh hanya menampilkan toast; tidak menyimpan data. Hubungkan autentikasi, validasi server, dan persistensi sesuai kebutuhan proyek nyata.
+Login session dan CRUD referensi sudah berfungsi. Halaman `/examples/records` dan banyak halaman showcase tetap demo frontend; dashboard/analytics/settings masih publik. Sebelum dipakai dalam proyek privat, terapkan middleware dan role policy pada semua route yang relevan. Panduan agent ada di `.agent/README.md`.
 
 ## Kustomisasi starter kit
 

@@ -1,5 +1,9 @@
 @props(['paginator'])
 
+@php
+    $elements = array_values(array_filter(\Illuminate\Pagination\UrlWindow::make($paginator)));
+@endphp
+
 @if ($paginator->hasPages())
     <div class="flex flex-wrap items-center justify-between gap-3 border-t px-6 py-3">
         <p class="text-xs text-muted-foreground">

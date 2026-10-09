@@ -70,7 +70,7 @@ Branding workspace dari config tampil di bagian atas sidebar, sedangkan nama/ema
 
 ## 🧪 Atur halaman demo
 
-Route katalog `/components/*` dan `/examples/records/*` didaftarkan hanya jika `config('kenanga.showcase')` bernilai true. Untuk menyembunyikan showcase dan menu demo, atur `ADMIN_SHOWCASE=false` dalam `.env`. Aplikasi dashboard, analitik, pengaturan, login, dan demo 404 tetap ada sesuai `routes/web.php`.
+Route katalog `/components/*`, `/examples/records/*`, dan CRUD `/reference/records/*` didaftarkan hanya jika `config('kenanga.showcase')` bernilai true. Untuk menyembunyikan showcase dan menu demo, atur `ADMIN_SHOWCASE=false` dalam `.env`. Aplikasi dashboard, analitik, pengaturan, login, dan demo 404 tetap ada sesuai `routes/web.php`.
 
 ::: warning Perhatikan tautan ke showcase
 Sebelum menonaktifkan showcase, periksa tautan kustom menuju route `showcase.*`. Dashboard bawaan sudah memeriksa `config('kenanga.showcase')` untuk tautan “Lihat semua”.
