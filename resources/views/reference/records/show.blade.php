@@ -8,10 +8,6 @@
         </div>
     </div>
 
-    @if (session('status'))
-        <x-ui.alert variant="success" title="Berhasil">{{ session('status') }}</x-ui.alert>
-    @endif
-
     <x-ui.detail-list title="Informasi entri" :items="[
         ['label' => 'Kategori', 'value' => ucfirst($record->category)],
         ['label' => 'Status', 'value' => ucfirst($record->status)],

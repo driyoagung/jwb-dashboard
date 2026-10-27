@@ -13,11 +13,15 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $attributes = ['role' => 'cashier', 'is_active' => true];
+
     /** @var list<string> */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
+        'is_active',
     ];
 
     /** @var list<string> */
@@ -37,6 +41,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin' && $this->is_active;
     }
 }

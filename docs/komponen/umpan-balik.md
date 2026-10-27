@@ -23,17 +23,11 @@
 </x-ui.alert>
 ```
 
-Untuk flash message dari redirect Laravel, tampilkan secara server-rendered:
-
-```blade
-@if (session('status'))
-    <x-ui.alert variant="success" title="Berhasil">{{ session('status') }}</x-ui.alert>
-@endif
-```
+Di layout admin, flash message `status` dan error validasi pertama dari redirect Laravel otomatis tampil sebagai toast. Gunakan `x-ui.alert` untuk informasi yang perlu tetap terlihat selama pengguna bekerja, seperti status pembayaran yang menunggu tindakan.
 
 ## 🔔 Toast
 
-Toast dibuat oleh `window.App.toast({ title, description, tone, duration })`, dan ditampilkan dalam `#toasts` milik layout. Pilihan tone: `success`, `danger`, `warning`, `info`, `neutral`. Bisa juga dipicu dengan atribut pada elemen yang diklik:
+Toast dibuat oleh `window.App.toast({ title, description, tone, duration })` menggunakan SweetAlert2 dan tampil di kanan atas. Pilihan tone: `success`, `danger`, `warning`, `info`, `neutral`. Bisa juga dipicu dengan atribut pada elemen yang diklik:
 
 ```blade
 <button type="button" data-toast="info" data-toast-title="Pratinjau" data-toast-desc="Hanya tampilan demo">
@@ -41,9 +35,9 @@ Toast dibuat oleh `window.App.toast({ title, description, tone, duration })`, da
 </button>
 ```
 
-`data-toast` menampilkan pesan saat klik; ini **bukan** konfirmasi penyimpanan server. Untuk tindakan nyata, tunggu hasil controller/redirect sebelum menampilkan sukses. Ketika membangun pesan toast dari data pengguna, hindari menyisipkan input tak tepercaya secara langsung: implementasi toast saat ini membentuk markup dengan `innerHTML`.
+`data-toast` menampilkan pesan saat klik; ini **bukan** konfirmasi penyimpanan server. Untuk tindakan nyata, tunggu hasil controller/redirect sebelum menampilkan sukses. Judul dan isi toast dipasang sebagai teks sehingga pesan dari server atau data pengguna tidak ditafsirkan sebagai HTML.
 
-`duration` memakai milidetik; jika tidak diisi, toast menutup sekitar 4,5 detik setelah ditampilkan. `window.App.toast` membutuhkan kontainer `#toasts` yang sudah tersedia pada layout aktif. Jangan menjadikannya satu-satunya tempat menampilkan error form—pesan per field melalui `x-ui.field` tetap dibutuhkan.
+`duration` memakai milidetik; jika tidak diisi, toast menutup sekitar 4,5 detik setelah ditampilkan. Toast mengikuti mode terang/gelap yang aktif. Jangan menjadikannya satu-satunya tempat menampilkan error form—pesan per field melalui `x-ui.field` tetap dibutuhkan.
 
 ## 🪟 Modal & drawer
 

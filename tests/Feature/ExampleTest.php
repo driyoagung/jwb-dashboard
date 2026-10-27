@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_home_redirects_to_dashboard(): void
     {
         $this->get('/')->assertRedirect('/dashboard');
@@ -14,9 +18,6 @@ class ExampleTest extends TestCase
     public function test_kenanga_pages_render_successfully(): void
     {
         $paths = [
-            '/dashboard',
-            '/analytics',
-            '/settings',
             '/components/cards',
             '/components/tables',
             '/components/forms',
@@ -38,15 +39,32 @@ class ExampleTest extends TestCase
         foreach ($paths as $path) {
             $this->get($path)
                 ->assertOk()
-                ->assertSee('Kenanga', false);
+                ->assertSee('Griyo POS', false);
         }
     }
 
     public function test_dashboard_marks_current_navigation_item(): void
     {
-        $this->get('/dashboard')
+        $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/dashboard')
             ->assertOk()
             ->assertSee('aria-current="page"', false);
+    }
+
+    public function test_pos_shell_shows_only_pos_navigation_and_fixed_appearance(): void
+    {
+        $response = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/dashboard');
+
+        $response->assertOk()
+            ->assertSee('Kasir')
+            ->assertSee('Master data')
+            ->assertSee('Riwayat stok')
+            ->assertDontSee('Contoh halaman')
+            ->assertDontSee('Komponen')
+            ->assertDontSee('id="customizer"', false)
+            ->assertDontSee('themeToggle', false)
+            ->assertSee('"theme":"light"', false)
+            ->assertSee('"accent":"indigo"', false)
+            ->assertSee('"radius":"0.3"', false);
     }
 
     public function test_blank_layout_renders_testing_page_without_admin_site_binding(): void

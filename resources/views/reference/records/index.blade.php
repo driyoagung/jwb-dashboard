@@ -7,10 +7,6 @@
         </div>
     </div>
 
-    @if (session('status'))
-        <x-ui.alert variant="success" title="Berhasil">{{ session('status') }}</x-ui.alert>
-    @endif
-
     <x-ui.filter-bar :action="route('reference.records.index')" :reset-url="route('reference.records.index')" placeholder="Cari judul entri">
         <div class="min-w-40 space-y-1.5">
             <label class="label" for="status-filter">Status</label>

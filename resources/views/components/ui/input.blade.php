@@ -10,7 +10,7 @@
     <div class="input-group relative">
         @if ($icon)
             <span class="input-addon absolute left-0 top-0 h-full border-0 bg-transparent px-2.5">
-                <x-icon :name="$icon" class="h-4 w-4" />
+                <x-ui.icon :name="$icon" class="h-4 w-4" />
             </span>
         @endif
         @if ($addon)

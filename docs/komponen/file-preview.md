@@ -9,11 +9,13 @@
 | Prop | Default | Fungsi |
 | --- | --- | --- |
 | `id` | wajib | ID input file/label |
+| `name` | `null` | Nama field untuk mengirim berkas melalui form Laravel |
 | `label` | `Pilih berkas` | Teks utama dropzone |
 | `accept` | `image/png,image/jpeg,application/pdf` | Petunjuk filter dialog file browser |
+| `formats` | `PNG, JPG, PDF` | Format yang ditampilkan pada petunjuk unggahan |
 | `maxMb` | `5` | Batas ukuran lokal dalam MB |
 
-Atribut `class` dan lainnya diterapkan pada pembungkus, **bukan input file**. Input bawaan belum memiliki `name`, sehingga berkas tidak terkirim ke Laravel tanpa mengubah komponen.
+Atribut `class` dan lainnya diterapkan pada pembungkus, **bukan input file**. Tentukan `name` agar berkas terkirim ke Laravel.
 
 ## 🖼️ Varian ukuran dan pratinjau
 
@@ -26,7 +28,7 @@ JS sekarang menerima hanya MIME PNG, JPG, dan PDF, terlepas dari prop `accept`. 
 
 ## 📤 Mengaktifkan upload Laravel
 
-Tambahkan `name` pada input di `file-preview.blade.php`; jika hendak konfigurabel, tambahkan prop `'name' => null` dan keluarkan atribut `name` dari prop tersebut pada `<input type="file">`. Sesudah komponen diubah:
+Komponen menerima prop `name` untuk mengirim berkas:
 
 ```blade
 <form method="POST" action="{{ route('attachments.store') }}" enctype="multipart/form-data">

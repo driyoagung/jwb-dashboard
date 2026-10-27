@@ -26,6 +26,11 @@ class AuthController extends Controller
             ]);
         }
 
+        if (! $request->user()->is_active) {
+            Auth::logout();
+            throw ValidationException::withMessages(['email' => 'Akun tidak aktif.']);
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended(route('admin.dashboard'));

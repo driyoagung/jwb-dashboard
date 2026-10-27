@@ -1,8 +1,9 @@
 @props(['item'])
 @php
-    $active = request()->routeIs($item['active'] ?? $item['route']);
+    $active = request()->routeIs($item['active'] ?? $item['route'])
+        && collect($item['params'] ?? [])->every(fn ($value, $key) => (string) request()->route($key) === (string) $value);
 @endphp
-<a href="{{ route($item['route']) }}" @class(['nav-link', 'active' => $active]) @if($active) aria-current="page" @endif>
+<a href="{{ route($item['route'], $item['params'] ?? []) }}" @class(['nav-link', 'active' => $active]) @if($active) aria-current="page" @endif>
     @if (!empty($item['icon']))
         <x-ui.icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
     @endif

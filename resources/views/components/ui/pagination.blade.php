@@ -4,13 +4,13 @@
     $elements = array_values(array_filter(\Illuminate\Pagination\UrlWindow::make($paginator)));
 @endphp
 
-@if ($paginator->hasPages())
     <div class="flex flex-wrap items-center justify-between gap-3 border-t px-6 py-3">
         <p class="text-xs text-muted-foreground">
-            Menampilkan {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }}
+            Menampilkan {{ $paginator->firstItem() ?? 0 }}–{{ $paginator->lastItem() ?? 0 }}
             dari {{ $paginator->total() }}
         </p>
 
+        @if ($paginator->hasPages())
         <nav class="flex items-center gap-1" role="navigation" aria-label="Paginasi">
             @if ($paginator->onFirstPage())
                 <span class="page-btn pointer-events-none opacity-40" aria-hidden="true">
@@ -48,5 +48,5 @@
                 </span>
             @endif
         </nav>
+        @endif
     </div>
-@endif

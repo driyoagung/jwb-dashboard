@@ -59,8 +59,8 @@
         <div class="menu w-56" hidden>
           <div class="px-2 py-1.5"><p class="font-medium">Ayu Rahmawati</p><p class="text-xs text-muted-foreground">ayu@kopikenanga.id</p></div>
           <div class="menu-sep"></div>
-          <a href="{{ route('admin.settings') }}" class="menu-item"><x-ui.icon name="user" />Profil</a>
-          <a href="{{ route('admin.settings') }}" class="menu-item"><x-ui.icon name="settings" />Pengaturan</a>
+          <a href="{{ route('pos.manage.settings.edit') }}" class="menu-item"><x-ui.icon name="user" />Profil</a>
+          <a href="{{ route('pos.manage.settings.edit') }}" class="menu-item"><x-ui.icon name="settings" />Pengaturan</a>
           <a href="#" class="menu-item"><x-ui.icon name="card" />Penagihan</a>
           <div class="menu-sep"></div>
           <a href="{{ route('login') }}" class="menu-item"><x-ui.icon name="logout" />Keluar</a>

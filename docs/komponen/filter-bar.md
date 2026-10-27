@@ -13,6 +13,8 @@
 | `search` | `null` | Nilai awal (fallback `request(searchName)`) |
 | `placeholder` | `Cari data…` | Petunjuk input |
 | `resetUrl` | `null` | URL tombol Atur ulang; tidak ditampilkan bila kosong |
+| `embedded` | `false` | Tampilkan bar filter di dalam kartu tabel Kenanga, dengan label pencarian tetap tersedia bagi pembaca layar |
+| `live` | `false` | Tandai form untuk pencarian dan filter server tanpa memuat ulang halaman ketika berada di `[data-pos-server-table]` |
 | Slot utama | — | Filter lain di dalam form |
 | `active` | opsional | Ringkasan filter aktif setelah form |
 
@@ -49,4 +51,6 @@ $records = Record::query()
     ->paginate(15)->withQueryString();
 ```
 
-Validasi status sebelum query jika pilihan berasal dari request. Filter bar tidak melakukan filtering JavaScript otomatis; form GET-lah yang mengirim parameter.
+Validasi status sebelum query jika pilihan berasal dari request. Secara default filter bar mengirim form GET; mode `live` hanya mengubah cara hasil yang dikirim server ditampilkan.
+
+Pada daftar POS, `embedded live` memakai `resources/js/admin/server-tables.js` untuk mengirim parameter yang sama ke controller dan mengganti bagian `[data-pos-results]`. Tombol Terapkan tidak ditampilkan dalam mode `live`; pencarian dan perubahan filter langsung memperbarui hasil. Paginasi dan urutan tetap dilakukan database. Tekan Enter pada pencarian untuk mengirim form GET jika JavaScript tidak tersedia. Jangan pasang `data-table` pada hasil yang dipaginasi server.

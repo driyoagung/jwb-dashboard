@@ -1,11 +1,11 @@
-@props(['id', 'label' => 'Pilih berkas', 'accept' => 'image/png,image/jpeg,application/pdf', 'maxMb' => 5])
+@props(['id', 'name' => null, 'label' => 'Pilih berkas', 'accept' => 'image/png,image/jpeg,application/pdf', 'formats' => 'PNG, JPG, PDF', 'maxMb' => 5])
 
 <div data-file-preview data-max-mb="{{ $maxMb }}" {{ $attributes->class('space-y-3') }}>
     <label for="{{ $id }}" class="dropzone cursor-pointer focus-within:border-primary focus-within:ring-2 focus-within:ring-ring/50" data-file-drop>
         <span class="flex h-10 w-10 items-center justify-center rounded-full bg-soft text-soft-foreground"><x-ui.icon name="upload" class="h-5 w-5" /></span>
         <span class="font-medium">{{ $label }}</span>
-        <span class="field-help">Seret ke sini atau klik untuk memilih. PNG, JPG, PDF · maksimal {{ $maxMb }} MB.</span>
-        <input id="{{ $id }}" type="file" class="sr-only" accept="{{ $accept }}" data-file-input>
+        <span class="field-help">Seret ke sini atau klik untuk memilih. {{ $formats }} · maksimal {{ $maxMb }} MB.</span>
+        <input id="{{ $id }}" @if($name) name="{{ $name }}" @endif type="file" class="sr-only" accept="{{ $accept }}" data-file-input>
     </label>
     <div class="flex items-center gap-3 rounded-lg border bg-card p-3" hidden data-file-result>
         <img class="h-12 w-12 rounded-md object-cover" alt="Pratinjau berkas terpilih" hidden data-file-image>

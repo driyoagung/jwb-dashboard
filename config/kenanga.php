@@ -30,56 +30,48 @@ $users = array_map(function (string $name, int $index) use ($roles, $statuses, $
 }, $names, array_keys($names));
 
 return [
-    'name' => env('ADMIN_NAME', 'Kenanga Admin'),
+    'name' => 'Griyo POS',
     'brand' => [
-        'name' => env('ADMIN_BRAND_NAME', 'Kenanga Admin'),
-        'workspace' => env('ADMIN_WORKSPACE', 'Kopi Kenanga'),
-        'description' => env('ADMIN_WORKSPACE_DESCRIPTION', 'Toko online'),
-        'footer' => 'Starter kit Laravel Blade',
+        'name' => 'Griyo POS',
+        'workspace' => 'Griyo POS',
+        'description' => 'Point of Sale',
+        'footer' => 'Point of Sale',
     ],
     'showcase' => (bool) env('ADMIN_SHOWCASE', true),
+    'appearance' => ['theme' => 'light', 'accent' => 'indigo', 'radius' => '0.3'],
+    'accents' => [['id' => 'indigo', 'name' => 'Indigo', 'hex' => '#4f46e5']],
+    'radii' => [['value' => '0.3', 'name' => 'Kecil']],
     'navigation' => [
-        ['label' => 'Platform', 'items' => [
+        ['label' => 'Ringkasan', 'items' => [
             ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'active' => 'admin.dashboard', 'icon' => 'dashboard'],
-            ['label' => 'Analitik', 'route' => 'admin.analytics', 'active' => 'admin.analytics', 'icon' => 'chart', 'badge' => 'Baru'],
+            ['label' => 'Notifikasi', 'route' => 'pos.notifications.index', 'active' => 'pos.notifications.*', 'icon' => 'bell'],
         ]],
-        ['label' => 'Komponen', 'showcase' => true, 'items' => [
-            ['label' => 'Kartu', 'route' => 'showcase.cards', 'active' => 'showcase.cards', 'icon' => 'grid'],
-            ['label' => 'Tabel', 'route' => 'showcase.tables', 'active' => 'showcase.tables', 'icon' => 'table'],
-            ['label' => 'Status tabel', 'route' => 'showcase.table-states', 'active' => 'showcase.table-states', 'icon' => 'layers'],
-            ['label' => 'Formulir', 'route' => 'showcase.forms', 'active' => 'showcase.forms', 'icon' => 'file-text'],
-            ['label' => 'Filter dan input', 'route' => 'showcase.filters', 'active' => 'showcase.filters', 'icon' => 'filter'],
-            ['label' => 'Grafik', 'route' => 'showcase.charts', 'active' => 'showcase.charts', 'icon' => 'pie'],
-            ['label' => 'Tombol dan lencana', 'route' => 'showcase.buttons', 'active' => 'showcase.buttons', 'icon' => 'pointer'],
-            ['label' => 'Umpan balik', 'route' => 'showcase.feedback', 'active' => 'showcase.feedback', 'icon' => 'message'],
-            ['label' => 'Navigasi', 'route' => 'showcase.navigation', 'active' => 'showcase.navigation', 'icon' => 'compass'],
-            ['label' => 'Pola data', 'route' => 'showcase.data-patterns', 'active' => 'showcase.data-patterns', 'icon' => 'layers'],
+        ['label' => 'Penjualan', 'items' => [
+            ['label' => 'Kasir', 'route' => 'pos.cashier', 'active' => 'pos.cashier', 'icon' => 'cart'],
+            ['label' => 'Draft', 'route' => 'pos.drafts.index', 'active' => 'pos.drafts.*', 'icon' => 'file-text'],
+            ['label' => 'Riwayat transaksi', 'route' => 'pos.transactions.index', 'active' => 'pos.transactions.*', 'icon' => 'table'],
+            ['label' => 'Kasbon', 'route' => 'pos.receivables.index', 'active' => 'pos.receivables.*', 'icon' => 'card'],
+            ['label' => 'Pelanggan', 'route' => 'pos.customers.index', 'active' => 'pos.customers.*', 'icon' => 'users'],
         ]],
-        ['label' => 'Contoh halaman', 'showcase' => true, 'items' => [
-            ['label' => 'Daftar entri', 'route' => 'examples.records.index', 'active' => 'examples.records.index', 'icon' => 'table'],
-            ['label' => 'CRUD tersimpan', 'route' => 'reference.records.index', 'active' => 'reference.records.*', 'icon' => 'layers'],
-            ['label' => 'Detail entri', 'route' => 'examples.records.show', 'active' => 'examples.records.show', 'icon' => 'eye'],
-            ['label' => 'Form entri', 'route' => 'examples.records.create', 'active' => 'examples.records.create', 'icon' => 'edit'],
+        ['label' => 'Master data', 'ability' => 'pos.admin', 'items' => [
+            ['label' => 'Produk', 'route' => 'pos.manage.products.index', 'active' => 'pos.manage.products.*', 'icon' => 'package'],
+            ['label' => 'Kategori', 'route' => 'pos.manage.categories.index', 'active' => 'pos.manage.categories.*', 'icon' => 'grid'],
+            ['label' => 'Satuan', 'route' => 'pos.manage.units.index', 'active' => 'pos.manage.units.*', 'icon' => 'layers'],
         ]],
-        ['label' => 'Halaman', 'items' => [
-            ['label' => 'Pengaturan akun', 'route' => 'admin.settings', 'active' => 'admin.settings', 'icon' => 'settings'],
-            ['id' => 'auth', 'label' => 'Otentikasi', 'icon' => 'lock', 'children' => [
-                ['label' => 'Masuk', 'route' => 'login', 'active' => 'login'],
-                ['label' => 'Kesalahan 404', 'route' => 'demo.404', 'active' => 'demo.404'],
-            ]],
+        ['label' => 'Inventori', 'ability' => 'pos.admin', 'items' => [
+            ['label' => 'Stok', 'route' => 'pos.manage.stock.index', 'active' => 'pos.manage.stock.index', 'icon' => 'package'],
+            ['label' => 'Riwayat stok', 'route' => 'pos.manage.stock.movements', 'active' => 'pos.manage.stock.movements', 'icon' => 'activity'],
         ]],
-    ],
-    'accents' => [
-        ['id' => 'zinc', 'name' => 'Zinc', 'hex' => '#18181b'], ['id' => 'blue', 'name' => 'Biru', 'hex' => '#2563eb'],
-        ['id' => 'indigo', 'name' => 'Indigo', 'hex' => '#4f46e5'], ['id' => 'violet', 'name' => 'Violet', 'hex' => '#7c3aed'],
-        ['id' => 'pink', 'name' => 'Pink', 'hex' => '#db2777'], ['id' => 'rose', 'name' => 'Rose', 'hex' => '#e11d48'],
-        ['id' => 'orange', 'name' => 'Oranye', 'hex' => '#c2410c'], ['id' => 'amber', 'name' => 'Amber', 'hex' => '#f59e0b'],
-        ['id' => 'green', 'name' => 'Hijau', 'hex' => '#15803d'], ['id' => 'emerald', 'name' => 'Emerald', 'hex' => '#059669'],
-        ['id' => 'teal', 'name' => 'Teal', 'hex' => '#0d9488'], ['id' => 'cyan', 'name' => 'Cyan', 'hex' => '#0e7490'],
-    ],
-    'radii' => [
-        ['value' => '0', 'name' => 'Tajam'], ['value' => '0.3', 'name' => 'Kecil'],
-        ['value' => '0.5', 'name' => 'Sedang'], ['value' => '0.75', 'name' => 'Besar'], ['value' => '1', 'name' => 'Bulat'],
+        ['label' => 'Laporan', 'ability' => 'pos.admin', 'items' => [
+            ['label' => 'Penjualan', 'route' => 'pos.manage.reports.show', 'params' => ['report' => 'sales'], 'active' => 'pos.manage.reports.*', 'icon' => 'chart'],
+            ['label' => 'Produk terlaris', 'route' => 'pos.manage.reports.show', 'params' => ['report' => 'products'], 'icon' => 'package'],
+            ['label' => 'Stok', 'route' => 'pos.manage.reports.show', 'params' => ['report' => 'stock'], 'icon' => 'layers'],
+            ['label' => 'Draft', 'route' => 'pos.manage.reports.show', 'params' => ['report' => 'drafts'], 'icon' => 'file-text'],
+        ]],
+        ['label' => 'Pengaturan', 'ability' => 'pos.admin', 'items' => [
+            ['label' => 'Pengguna', 'route' => 'pos.manage.users.index', 'active' => 'pos.manage.users.*', 'icon' => 'users'],
+            ['label' => 'Toko', 'route' => 'pos.manage.settings.edit', 'active' => 'pos.manage.settings.*', 'icon' => 'settings'],
+        ]],
     ],
     'demo' => [
         'records' => [

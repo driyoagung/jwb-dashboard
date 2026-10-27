@@ -1,14 +1,68 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Pos\CategoryController;
+use App\Http\Controllers\Pos\CheckoutController;
+use App\Http\Controllers\Pos\CustomerController;
+use App\Http\Controllers\Pos\DashboardController;
+use App\Http\Controllers\Pos\DraftController;
+use App\Http\Controllers\Pos\GlobalSearchController;
+use App\Http\Controllers\Pos\NotificationController;
+use App\Http\Controllers\Pos\ProductController;
+use App\Http\Controllers\Pos\ReceivableController;
+use App\Http\Controllers\Pos\ReportController;
+use App\Http\Controllers\Pos\SettingController;
+use App\Http\Controllers\Pos\StockController;
+use App\Http\Controllers\Pos\TransactionController;
+use App\Http\Controllers\Pos\UnitController;
+use App\Http\Controllers\Pos\UserController;
 use App\Http\Controllers\ReferenceRecordController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
 
-Route::view('/dashboard', 'admin.dashboard')->name('admin.dashboard');
-Route::view('/analytics', 'admin.analytics')->name('admin.analytics');
-Route::view('/settings', 'admin.settings')->name('admin.settings');
+Route::middleware(['auth', 'can:pos.sell'])->group(function (): void {
+    Route::get('/search', GlobalSearchController::class)->name('pos.search');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('pos.notifications.index');
+    Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('pos.notifications.feed');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('pos.notifications.read-all');
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('pos.notifications.destroy-all');
+    Route::post('/notifications/{notification}/mark', [NotificationController::class, 'mark'])->name('pos.notifications.mark');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('pos.notifications.read');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('pos.notifications.destroy');
+    Route::get('/dashboard', DashboardController::class)->name('admin.dashboard');
+    Route::get('/cashier', [CheckoutController::class, 'create'])->name('pos.cashier');
+    Route::resource('/customers', CustomerController::class)->except(['show', 'destroy'])->names('pos.customers');
+    Route::get('/receivables', [ReceivableController::class, 'index'])->name('pos.receivables.index');
+    Route::get('/receivables/{receivable}', [ReceivableController::class, 'show'])->name('pos.receivables.show');
+    Route::post('/receivables/{receivable}/payments', [ReceivableController::class, 'storePayment'])->name('pos.receivables.payments.store');
+    Route::get('/cashier/barcode', [CheckoutController::class, 'lookupBarcode'])->name('pos.cashier.barcode');
+    Route::post('/cashier/checkout', [CheckoutController::class, 'store'])->name('pos.checkout');
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('pos.transactions.index');
+    Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('pos.transactions.show');
+    Route::get('/transactions/{transaction}/receipt', [TransactionController::class, 'receipt'])->name('pos.transactions.receipt');
+    Route::post('/transactions/{transaction}/check-payment', [TransactionController::class, 'checkPayment'])->name('pos.transactions.check-payment');
+    Route::post('/transactions/{transaction}/retry-payment', [TransactionController::class, 'retryPayment'])->name('pos.transactions.retry-payment');
+    Route::get('/drafts', [DraftController::class, 'index'])->name('pos.drafts.index');
+    Route::post('/drafts', [DraftController::class, 'store'])->name('pos.drafts.store');
+    Route::get('/drafts/{draft}', [DraftController::class, 'show'])->name('pos.drafts.show');
+    Route::put('/drafts/{draft}', [DraftController::class, 'update'])->name('pos.drafts.update');
+    Route::delete('/drafts/{draft}', [DraftController::class, 'destroy'])->name('pos.drafts.destroy');
+});
+
+Route::middleware(['auth', 'can:pos.admin'])->prefix('manage')->name('pos.manage.')->group(function (): void {
+    Route::resource('categories', CategoryController::class)->except('show');
+    Route::resource('units', UnitController::class)->except('show');
+    Route::resource('products', ProductController::class)->except('show');
+    Route::get('stock', [StockController::class, 'index'])->name('stock.index');
+    Route::post('stock/{product}/adjust', [StockController::class, 'adjust'])->name('stock.adjust');
+    Route::get('stock/movements', [StockController::class, 'movements'])->name('stock.movements');
+    Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    Route::get('reports/{report}/export', [ReportController::class, 'export'])->name('reports.export');
+    Route::resource('users', UserController::class)->except(['show', 'destroy']);
+    Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
+    Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
+});
 
 if (config('kenanga.showcase')) {
     Route::prefix('components')->name('showcase.')->group(function (): void {

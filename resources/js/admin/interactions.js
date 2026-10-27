@@ -1,3 +1,6 @@
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
+
 /*
  * app.js: perilaku interaktif template. Memakai event delegation dan atribut data-*,
  * jadi satu file ini menangani semua halaman.
@@ -42,6 +45,7 @@
     if (k === 'sbmode') { if (v === 'mini') root.dataset.sbmode = 'mini'; else delete root.dataset.sbmode; }
   }
   function syncPrefs() {
+    root.dataset.swal2Theme = effTheme();
     $$('[data-pref]').forEach(function (b) {
       b.setAttribute('aria-pressed', String(pref(b.dataset.pref) === b.dataset.value));
     });
@@ -84,10 +88,6 @@
   /* =====================================================
      TOAST
      ===================================================== */
-  var TONES = {
-    success: ['check-circle', 'text-success'], danger: ['alert-circle', 'text-danger'],
-    warning: ['alert-triangle', 'text-warning'], info: ['info', 'text-info'], neutral: ['bell', 'text-muted-foreground']
-  };
   function motionTime(el) {
     var style = window.getComputedStyle(el);
     function ms(value) { return value.endsWith('ms') ? parseFloat(value) : parseFloat(value) * 1000; }
@@ -107,25 +107,19 @@
     return function () { if (done) return; done = true; cleanup(); };
   }
   function toast(o) {
-    var c = $('#toasts'); if (!c) return;
-    var t = TONES[o.tone] || TONES.neutral;
-    var el = document.createElement('div');
-    el.className = 'toast-notice pointer-events-auto flex items-start gap-3 rounded-lg border bg-card p-4 text-sm shadow-lg';
-    el.innerHTML =
-      '<svg class="mt-0.5 h-4 w-4 shrink-0 ' + t[1] + '" aria-hidden="true"><use href="' + iconHref(t[0]) + '"/></svg>' +
-      '<div class="min-w-0 flex-1"><p class="font-medium">' + (o.title || '') + '</p>' +
-      (o.description ? '<p class="mt-0.5 text-muted-foreground">' + o.description + '</p>' : '') + '</div>' +
-      '<button type="button" class="-m-1 rounded p-1 text-muted-foreground hover:text-foreground" aria-label="Tutup"><svg class="h-4 w-4"><use href="' + iconHref('x') + '"/></svg></button>';
-    var timer;
-    var close = function () {
-      if (el.dataset.closing) return;
-      clearTimeout(timer);
-      el.dataset.closing = 'true';
-      afterMotion(el, function () { el.remove(); });
-    };
-    el.querySelector('button').addEventListener('click', close);
-    c.appendChild(el);
-    timer = setTimeout(close, o.duration || 4500);
+    root.dataset.swal2Theme = effTheme();
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: { success: 'success', danger: 'error', warning: 'warning', info: 'info', neutral: 'info' }[o.tone] || 'info',
+      title: o.title || '',
+      text: o.description || undefined,
+      showConfirmButton: false,
+      showCloseButton: true,
+      timer: o.duration || 4500,
+      timerProgressBar: true,
+      heightAuto: false,
+    });
   }
 
   /* =====================================================
@@ -400,6 +394,13 @@
 
   window.App = { toast: toast, setPref: setPref, initPage: initPage };
 
+  function showFlashToasts() {
+    var container = $('#toasts');
+    if (!container) return;
+    if (container.dataset.flashStatus) toast({ title: 'Berhasil', description: container.dataset.flashStatus, tone: 'success' });
+    if (container.dataset.flashError) toast({ title: 'Periksa input', description: container.dataset.flashError, tone: 'danger', duration: 6500 });
+  }
+
   /* =====================================================
      ROUTER PRATINJAU (hanya aktif pada pratinjau satu-file: window.__SPA__)
      Pada build multi-halaman, tiap halaman dimuat normal oleh browser.
@@ -430,4 +431,5 @@
   /* Mulai */
   syncPrefs();
   if (window.__SPA__) startSpa(); else initPage(document);
+  showFlashToasts();
 })();
