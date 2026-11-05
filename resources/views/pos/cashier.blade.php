@@ -2,20 +2,13 @@
     <x-ui.page-header :title="$draft ? 'Lanjutkan draft #'.$draft->id : 'Kasir'" description="Cari produk, susun keranjang, lalu selesaikan pembayaran atau simpan draft." />
     @if ($draft) <x-ui.alert variant="info" title="Mengedit draft">Harga dan stok saat ini ditampilkan. Simpan perubahan draft sebelum checkout bila isi keranjang berubah.</x-ui.alert> @endif
     <div class="grid gap-6 lg:grid-cols-2">
-        <div class="card min-w-0" data-pos-server-table>
+        <div class="card min-w-0" data-pos-server-table data-pos-barcode data-lookup-url="{{ route('pos.cashier.barcode') }}">
             <div class="p-6 pb-4"><h2 class="card-title">Produk tersedia</h2><p class="card-desc mt-1.5">Cari atau scan produk untuk menambahnya ke keranjang.</p></div>
-            <div class="border-t p-6" data-pos-barcode data-lookup-url="{{ route('pos.cashier.barcode') }}">
-                <x-ui.field id="cashier-barcode" label="Scan barcode" help="Scanner USB/Bluetooth: arahkan ke kolom ini lalu scan. Enter langsung menambah produk.">
-                    <x-ui.input id="cashier-barcode" name="barcode_scan" icon="search" placeholder="Scan atau ketik barcode produk" autocomplete="off" data-barcode-input />
-                </x-ui.field>
-                <div class="mt-3 flex flex-wrap gap-2">
-                    <x-ui.button data-barcode-add><x-ui.icon name="cart" />Tambah produk</x-ui.button>
-                    <x-ui.button variant="outline" data-modal-open="#barcode-camera" data-barcode-camera><x-ui.icon name="image" />Scan kamera</x-ui.button>
-                </div>
-            </div>
-            <x-ui.filter-bar :action="$draft ? route('pos.cashier', ['draft' => $draft->id]) : route('pos.cashier')" :reset-url="$draft ? route('pos.cashier', ['draft' => $draft->id]) : route('pos.cashier')" placeholder="Scan barcode atau cari nama/SKU" embedded live>
+            <x-ui.filter-bar :action="$draft ? route('pos.cashier', ['draft' => $draft->id]) : route('pos.cashier')" :reset-url="$draft ? route('pos.cashier', ['draft' => $draft->id]) : route('pos.cashier')" placeholder="Scan barcode atau cari nama/SKU" embedded live barcode>
                 @if ($draft)<input type="hidden" name="draft" value="{{ $draft->id }}">@endif
+                <x-ui.button type="button" variant="outline" size="sm" data-modal-open="#barcode-camera" data-barcode-camera><x-ui.icon name="image" />Scan kamera</x-ui.button>
             </x-ui.filter-bar>
+            <p class="field-help px-6 pb-3">Scan barcode untuk langsung menambah produk. Ketik nama/SKU lalu klik kartu hasilnya untuk menambah produk.</p>
             <div data-pos-results>
                 @if ($products->isEmpty()) <div class="border-t"><x-ui.table-state :state="request()->filled('q') ? 'filtered' : 'empty'" title="Produk tidak ditemukan" /></div>
                 @else <div class="grid gap-4 border-t p-6 sm:grid-cols-2">

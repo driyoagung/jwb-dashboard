@@ -169,6 +169,18 @@ class PosFeatureTest extends TestCase
         $this->getJson(route('pos.cashier.barcode', ['barcode' => $product->barcode]))->assertNotFound();
     }
 
+    public function test_cashier_uses_one_search_field_for_manual_products_and_scanner_input(): void
+    {
+        $product = $this->product();
+        $product->update(['barcode' => null, 'stock_qty' => 3]);
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $page = $this->actingAs($cashier)->get(route('pos.cashier', ['q' => $product->name]))->assertOk()->assertSee($product->name);
+        $this->assertSame(1, preg_match_all('/data-barcode-input/', $page->getContent()));
+        $this->assertStringContainsString('name="q"', $page->getContent());
+        $this->assertStringNotContainsString('name="barcode_scan"', $page->getContent());
+        $this->assertStringContainsString('data-cart-add', $page->getContent());
+    }
+
     public function test_inactive_user_cannot_log_in(): void
     {
         $user = User::factory()->create(['role' => 'cashier', 'is_active' => false, 'password' => 'long-test-password']);
@@ -533,7 +545,7 @@ class PosFeatureTest extends TestCase
 
     public function test_optional_product_image_can_be_uploaded_replaced_and_removed(): void
     {
-        Storage::fake('public');
+        Storage::fake('product_uploads');
         $admin = User::factory()->create(['role' => 'admin']);
         $product = $this->product();
         $data = [
@@ -546,14 +558,14 @@ class PosFeatureTest extends TestCase
             ->assertRedirect()->assertSessionHasNoErrors();
         $firstPath = $product->fresh()->image_path;
         $this->assertNotNull($firstPath);
-        Storage::disk('public')->assertExists($firstPath);
+        Storage::disk('product_uploads')->assertExists($firstPath);
         $this->get(route('pos.cashier'))->assertOk()->assertSee(route('pos.products.image', ['product' => $product->id]), false)->assertSee('Tambah ke keranjang');
 
         $this->put(route('pos.manage.products.update', $product), $data + ['image' => UploadedFile::fake()->image('dua.png')])
             ->assertRedirect()->assertSessionHasNoErrors();
-        Storage::disk('public')->assertMissing($firstPath);
+        Storage::disk('product_uploads')->assertMissing($firstPath);
         $secondPath = $product->fresh()->image_path;
-        Storage::disk('public')->assertExists($secondPath);
+        Storage::disk('product_uploads')->assertExists($secondPath);
 
         $this->put(route('pos.manage.products.update', $product), $data + ['image' => UploadedFile::fake()->create('bukan-gambar.pdf', 10, 'application/pdf')])
             ->assertSessionHasErrors('image');
@@ -562,13 +574,13 @@ class PosFeatureTest extends TestCase
         $this->put(route('pos.manage.products.update', $product), $data + ['remove_image' => 1])
             ->assertRedirect()->assertSessionHasNoErrors();
         $this->assertNull($product->fresh()->image_path);
-        Storage::disk('public')->assertMissing($secondPath);
+        Storage::disk('product_uploads')->assertMissing($secondPath);
 
         $this->post(route('pos.manage.products.store'), array_replace($data, ['sku' => 'GAMBAR-1', 'initial_stock' => 0, 'image' => UploadedFile::fake()->image('baru.jpg')]))
             ->assertRedirect()->assertSessionHasNoErrors();
         $newProduct = Product::query()->where('name', $product->name)->where('id', '!=', $product->id)->sole();
         $this->assertMatchesRegularExpression('/^PRD-[A-Z0-9]{12}$/', $newProduct->sku);
-        Storage::disk('public')->assertExists($newProduct->image_path);
+        Storage::disk('product_uploads')->assertExists($newProduct->image_path);
     }
 
     public function test_setting_changes_do_not_rewrite_transaction_tax_snapshot(): void

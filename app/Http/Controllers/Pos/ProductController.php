@@ -8,10 +8,10 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Unit;
 use App\Services\StockService;
+use App\Support\ProductImages;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use RuntimeException;
@@ -59,7 +59,7 @@ class ProductController extends Controller
             'product' => $product,
             'categories' => Category::where('is_active', true)->orderBy('name')->pluck('name', 'id'),
             'units' => Unit::where('is_active', true)->orderBy('name')->pluck('name', 'id'),
-            'imageAvailable' => $product?->image_path ? Storage::disk('public')->exists($product->image_path) : false,
+            'imageAvailable' => $product?->image_path ? ProductImages::disk($product->image_path)->exists($product->image_path) : false,
         ]);
     }
 
@@ -69,7 +69,7 @@ class ProductController extends Controller
         $initial = (int) $data['initial_stock'];
         unset($data['initial_stock'], $data['image'], $data['remove_image']);
         $data['sku'] = 'PRD-'.Str::upper(Str::random(12));
-        $imagePath = $request->file('image')?->store('products', 'public');
+        $imagePath = $request->file('image')?->store('uploads/products', 'product_uploads');
         if ($imagePath === false) {
             throw new RuntimeException('Gambar produk gagal disimpan.');
         }
@@ -84,7 +84,7 @@ class ProductController extends Controller
             });
         } catch (Throwable $exception) {
             if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
+                ProductImages::disk($imagePath)->delete($imagePath);
             }
             throw $exception;
         }
@@ -96,7 +96,7 @@ class ProductController extends Controller
     {
         $data = $request->validated();
         unset($data['image'], $data['remove_image']);
-        $imagePath = $request->file('image')?->store('products', 'public');
+        $imagePath = $request->file('image')?->store('uploads/products', 'product_uploads');
         if ($imagePath === false) {
             throw new RuntimeException('Gambar produk gagal disimpan.');
         }
@@ -117,12 +117,12 @@ class ProductController extends Controller
             }, 3);
         } catch (Throwable $exception) {
             if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
+                ProductImages::disk($imagePath)->delete($imagePath);
             }
             throw $exception;
         }
         if ($oldImagePath && array_key_exists('image_path', $data) && $oldImagePath !== $data['image_path']) {
-            Storage::disk('public')->delete($oldImagePath);
+            ProductImages::disk($oldImagePath)->delete($oldImagePath);
         }
 
         return redirect()->route('pos.manage.products.index')->with('status', 'Produk berhasil diperbarui.');
@@ -140,7 +140,7 @@ class ProductController extends Controller
         }
         $product->forceDelete();
         if ($product->image_path) {
-            Storage::disk('public')->delete($product->image_path);
+            ProductImages::disk($product->image_path)->delete($product->image_path);
         }
 
         return back()->with('status', 'Produk dihapus.');

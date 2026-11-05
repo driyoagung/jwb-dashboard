@@ -286,7 +286,7 @@ if (root) {
     let cameraRun = 0;
     let scanHintTimer = null;
 
-    async function lookupBarcode(code) {
+    async function lookupBarcode(code, fallbackToSearch = true) {
         const barcode = code.trim();
         if (!barcode) {
             window.App.toast({ title: 'Barcode kosong', description: 'Scan atau ketik barcode produk.', tone: 'warning' });
@@ -298,11 +298,16 @@ if (root) {
             url.searchParams.set('barcode', barcode);
             const response = await fetch(url, { headers: { Accept: 'application/json' }, cache: 'no-store' });
             const product = await response.json();
+            if (response.status === 404 && fallbackToSearch) {
+                barcodeInput.closest('form').requestSubmit();
+                return;
+            }
             if (!response.ok) throw new Error(product.message || 'Produk tidak dapat ditemukan.');
             if (addProduct(product)) {
                 window.App.toast({ title: 'Produk ditambahkan', description: product.name, tone: 'success', duration: 2500 });
             }
             barcodeInput.value = '';
+            barcodeInput.dispatchEvent(new Event('input', { bubbles: true }));
             barcodeInput.focus();
         } catch (error) {
             window.App.toast({ title: 'Scan gagal', description: error.message || 'Periksa barcode dan coba lagi.', tone: 'danger' });
@@ -310,8 +315,8 @@ if (root) {
         }
     }
 
-    function enqueueBarcode(code) {
-        lookupQueue = lookupQueue.then(() => lookupBarcode(code));
+    function enqueueBarcode(code, fallbackToSearch = true) {
+        lookupQueue = lookupQueue.then(() => lookupBarcode(code, fallbackToSearch));
     }
 
     barcodeInput.addEventListener('keydown', event => {
@@ -319,7 +324,6 @@ if (root) {
         event.preventDefault();
         enqueueBarcode(barcodeInput.value);
     });
-    scanner.querySelector('[data-barcode-add]').addEventListener('click', () => enqueueBarcode(barcodeInput.value));
     function stopCamera() {
         cameraRun++;
         cameraAbort?.abort();
@@ -360,7 +364,7 @@ if (root) {
                 stopCamera();
                 cameraDialog.close();
                 barcodeInput.value = code;
-                enqueueBarcode(code);
+                enqueueBarcode(code, false);
             }, { deviceId: cameraSource.value, signal: cameraAbort.signal });
             if (run !== cameraRun || !cameraDialog.open) controls.stop();
             else {

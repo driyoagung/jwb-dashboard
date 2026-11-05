@@ -38,7 +38,7 @@ Pelanggan dan kasbon dikendalikan oleh `config/pos.php`: `POS_CUSTOMERS_ENABLED`
 
 `price_histories` hanya menyimpan id, product_id, user_id, price_type (`cost`/`sell`), old_price, new_price, created_at. Harga awal memakai old_price null; modal yang dikosongkan memakai new_price null. Pencatatan perubahan dan pembaruan produk berada dalam satu transaksi dengan row lock; simpan tanpa perubahan tidak membuat riwayat. Produk yang memiliki riwayat dihapus secara soft delete. Histori hanya dapat dibaca admin dan tidak tersedia aksi ubah/hapus.
 
-Harga modal lebih besar dari harga jual ditolak di server dan diberi peringatan pada form. Upload produk menerima JPG/JPEG, PNG, WebP, GIF sampai 5 MB. Pratinjau mengikuti atribut accept; route `pos.products.image` memeriksa akses, path dan MIME sebelum mengirim gambar dari disk public.
+Harga modal lebih besar dari harga jual ditolak di server dan diberi peringatan pada form. Upload produk menerima JPG/JPEG, PNG, WebP, GIF sampai 5 MB. Pratinjau mengikuti atribut accept; route `pos.products.image` memeriksa akses, path dan MIME sebelum mengirim gambar baru dari `public/uploads/products` atau gambar lama dari `storage/app/public/products`.
 
 Laba kotor = subtotal - discount_amount - cost_total, tanpa pajak. `transaction_items.unit_cost` dan `transactions.cost_total` diisi saat checkout dari produk yang dikunci. Jika salah satu modal belum diisi, cost_total dan laba kotor null. Total laba hanya menjumlahkan transaksi selesai dengan modal lengkap dan menyebut jumlah transaksi yang dikecualikan. Tidak ada backfill harga modal saat ini ke transaksi lama. Nilai negatif setelah diskon tetap dilaporkan. Data seed baru memiliki snapshot modal; data lama tidak diubah.
 

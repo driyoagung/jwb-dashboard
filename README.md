@@ -12,7 +12,6 @@ npm install
 copy .env.example .env
 php artisan key:generate
 php artisan migrate
-php artisan storage:link
 php artisan pos:create-admin
 npm run dev
 php artisan serve
@@ -41,7 +40,7 @@ Admin dapat melihat semua transaksi dan draft; kasir hanya data miliknya. Draft 
 
 ### Scan barcode di kasir
 
-Barcode produk disimpan pada kolom `products.barcode` yang unik dan opsional. Admin dapat mengisi barcode saat membuat atau mengubah produk lewat scanner USB/Bluetooth, tombol **Scan dengan kamera**, atau ketikan; seeder menyediakan barcode EAN-13 valid untuk setiap produk contoh. Di kasir, arahkan scanner USB/Bluetooth ke kolom **Scan barcode** lalu scan: tombol Enter dari scanner langsung menambah produk. Tombol **Scan kamera** otomatis membaca barcode dan menambahkan produk ke keranjang. Pada HTTPS atau localhost, browser membuka video setelah izin kamera diberikan dan otomatis membaca barcode yang terlihat tanpa tombol foto. Browser tidak mengizinkan video kamera live pada alamat HTTP biasa seperti `http://pos-jagat.test`; gunakan `http://localhost` di komputer yang menjalankan POS atau HTTPS untuk perangkat lain. Scanner USB/Bluetooth tetap dapat dipakai pada HTTP biasa. Pencarian barcode dilakukan tepat pada produk aktif, sedangkan produk dengan stok nol tidak bisa ditambahkan ke keranjang.
+Barcode produk disimpan pada kolom `products.barcode` yang unik dan opsional. Admin dapat mengisi barcode saat membuat atau mengubah produk lewat scanner USB/Bluetooth, tombol **Scan dengan kamera**, atau ketikan; seeder menyediakan barcode EAN-13 valid untuk setiap produk contoh. Di kasir, satu kolom pencarian menerima barcode, nama, atau SKU. Barcode dari scanner USB/Bluetooth dan kamera langsung menambah produk; ketikan nama/SKU menampilkan kartu hasil yang dapat diklik untuk menambah produk. Tombol **Scan kamera** otomatis membaca barcode dan menambahkan produk ke keranjang. Pada HTTPS atau localhost, browser membuka video setelah izin kamera diberikan dan otomatis membaca barcode yang terlihat tanpa tombol foto. Browser tidak mengizinkan video kamera live pada alamat HTTP biasa seperti `http://pos-jagat.test`; gunakan `http://localhost` di komputer yang menjalankan POS atau HTTPS untuk perangkat lain. Scanner USB/Bluetooth tetap dapat dipakai pada HTTP biasa. Pencarian barcode dilakukan tepat pada produk aktif, sedangkan produk dengan stok nol tidak bisa ditambahkan ke keranjang.
 
 SKU produk baru dibuat otomatis saat disimpan dan tidak dapat diubah melalui form. Hapus menghilangkan produk dari katalog, kasir, dan daftar stok. Produk dengan riwayat transaksi atau pergerakan stok dihapus secara lunak supaya riwayat tetap utuh; barcode dibebaskan agar dapat dipakai produk baru. Produk tanpa riwayat dihapus permanen. Jalankan `php artisan migrate` setelah memperbarui aplikasi untuk menambahkan kolom penghapusan lunak.
 
@@ -61,7 +60,7 @@ Input angka bulat di halaman POS memakai pemisah ribuan saat diketik, misalnya `
 
 Pada lingkungan lokal, pemeriksaan dilakukan dengan tombol tersebut. Untuk produksi yang perlu memperbarui status secara otomatis meski halaman tidak dibuka, siapkan notifikasi server Midtrans atau proses pemeriksaan berkala melalui koneksi publik yang aman.
 
-Gambar produk bersifat opsional untuk produk yang dibuat admin. Admin dapat mengunggah PNG/JPG hingga 5 MB; gambar disimpan di disk `public` dan ditampilkan pada daftar produk serta kartu kasir. Produk contoh dari seeder otomatis memakai 15 foto WebP di `database/seeders/assets/products/`. Jalankan `php artisan storage:link` agar gambar dapat diakses browser.
+Gambar produk bersifat opsional untuk produk yang dibuat admin. Admin dapat mengunggah JPG/PNG/WebP/GIF hingga 5 MB; gambar baru disimpan di `public/uploads/products` dan ditampilkan pada daftar produk serta kartu kasir. Produk contoh dari seeder otomatis memakai 15 foto WebP di `database/seeders/assets/products/`. Gambar lama dari disk `public` tetap dilayani aplikasi tanpa perlu `storage:link`.
 
 Rincian audit, skema, aturan bisnis, dan pengujian ada di `docs/pos/`.
 
@@ -132,7 +131,7 @@ Navbar menyediakan pencarian global untuk produk, transaksi, dan nomor draft ses
 
 Edisi klien menonaktifkan pelanggan dan kasbon secara bawaan. Untuk mengaktifkannya kembali, isi `POS_CUSTOMERS_ENABLED=true` dan `POS_CREDIT_ENABLED=true` pada `.env`, lalu jalankan `php artisan config:clear`. Data pelanggan/tagihan lama tidak dihapus. Metode CREDIT lama diberi label Kasbon (arsip), sedangkan OTHER berarti Lainnya (data lama); keduanya tetap diperhitungkan dalam omzet historis.
 
-Menu **Master data → Riwayat harga** mencatat harga awal serta perubahan modal/jual dengan pengguna dan waktunya pada `price_histories`. Perubahan sebelum fitur ini dipasang tidak direkonstruksi. Harga modal tidak boleh melebihi harga jual. Gambar produk menerima JPG/JPEG, PNG, WebP, atau GIF maksimal 5 MB; HEIC dan SVG perlu dikonversi. Gambar dilayani melalui route terautentikasi sehingga tidak bergantung pada junction `public/storage`.
+Menu **Master data → Riwayat harga** mencatat harga awal serta perubahan modal/jual dengan pengguna dan waktunya pada `price_histories`. Perubahan sebelum fitur ini dipasang tidak direkonstruksi. Harga modal tidak boleh melebihi harga jual. Gambar produk menerima JPG/JPEG, PNG, WebP, atau GIF maksimal 5 MB; HEIC dan SVG perlu dikonversi. Gambar baru masuk ke `public/uploads/products` dan dilayani melalui route terautentikasi tanpa `storage:link`; gambar lama tetap dapat dibaca.
 
 Laporan Penjualan dan CSV menyediakan modal serta laba kotor: subtotal dikurangi diskon dan modal saat checkout, tanpa pajak penjualan. Transaksi lama atau produk tanpa modal ditandai belum tercatat dan dikecualikan dari total laba kotor. Mengubah harga produk tidak menulis ulang modal transaksi lama. Jalankan `php artisan migrate` setelah memperbarui kode untuk memasang tabel riwayat harga dan kolom snapshot modal.
 

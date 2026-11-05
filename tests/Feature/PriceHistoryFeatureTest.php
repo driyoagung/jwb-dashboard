@@ -104,12 +104,14 @@ class PriceHistoryFeatureTest extends TestCase
 
     public function test_supported_images_are_served_without_a_storage_link_and_invalid_files_are_rejected(): void
     {
-        Storage::fake('public');
+        $this->assertSame(public_path(), config('filesystems.disks.product_uploads.root'));
+        Storage::fake('product_uploads');
         $admin = User::factory()->create(['role' => 'admin']);
         $data = $this->productData();
         foreach (['jpg', 'png', 'webp', 'gif'] as $extension) {
             $this->actingAs($admin)->post(route('pos.manage.products.store'), $data + ['image' => UploadedFile::fake()->image('image.'.$extension)])->assertSessionHasNoErrors();
             $product = Product::latest('id')->first();
+            $this->assertStringStartsWith('uploads/products/', $product->image_path);
             $response = $this->get($product->image_url)->assertOk();
             $this->assertStringStartsWith('image/', $response->headers->get('Content-Type'));
             $this->assertNotEmpty($response->streamedContent());
@@ -117,7 +119,7 @@ class PriceHistoryFeatureTest extends TestCase
         $this->post(route('pos.manage.products.store'), $data + ['image' => UploadedFile::fake()->create('bad.svg', 1, 'image/svg+xml')])->assertSessionHasErrors('image');
         $this->post(route('pos.manage.products.store'), $data + ['image' => UploadedFile::fake()->image('large.jpg')->size(5121)])->assertSessionHasErrors('image');
         $this->assertDatabaseCount('products', 4);
-        Storage::disk('public')->delete($product->image_path);
+        Storage::disk('product_uploads')->delete($product->image_path);
         $this->get($product->image_url)->assertNotFound();
         $this->get(route('pos.manage.products.edit', $product))->assertOk()->assertSee('Berkas gambar lama tidak ditemukan');
         $this->post(route('logout'))->assertRedirect();
