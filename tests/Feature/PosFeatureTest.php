@@ -175,10 +175,14 @@ class PosFeatureTest extends TestCase
         $product->update(['barcode' => null, 'stock_qty' => 3]);
         $cashier = User::factory()->create(['role' => 'cashier']);
         $page = $this->actingAs($cashier)->get(route('pos.cashier', ['q' => $product->name]))->assertOk()->assertSee($product->name);
-        $this->assertSame(1, preg_match_all('/data-barcode-input/', $page->getContent()));
+        $this->assertSame(1, preg_match_all('/<input[^>]*data-barcode-input=/', $page->getContent()));
         $this->assertStringContainsString('name="q"', $page->getContent());
         $this->assertStringNotContainsString('name="barcode_scan"', $page->getContent());
         $this->assertStringContainsString('data-cart-add', $page->getContent());
+        $results = $this->withHeader('X-POS-RESULTS-ONLY', '1')->get(route('pos.cashier', ['q' => $product->name]))->assertOk();
+        $results->assertSee($product->name)->assertSee('data-pos-results', false)->assertDontSee('data-pos-cart', false);
+        $this->assertLessThan(strlen($page->getContent()) / 2, strlen($results->getContent()));
+        $this->withHeader('X-POS-RESULTS-ONLY', '1')->get(route('pos.cashier', ['q' => 'tidak-ada']))->assertOk()->assertSee('Produk tidak ditemukan');
     }
 
     public function test_inactive_user_cannot_log_in(): void

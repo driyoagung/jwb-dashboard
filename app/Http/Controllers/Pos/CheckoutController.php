@@ -38,6 +38,10 @@ class CheckoutController extends Controller
             ->when($filters['q'] ?? null, fn ($query, $q) => $query->where(fn ($query) => $query->where('name', 'like', '%'.$q.'%')->orWhere('sku', 'like', '%'.$q.'%')->orWhere('barcode', $q)))
             ->orderBy('name')->paginate(15)->withQueryString();
 
+        if ($request->header('X-POS-RESULTS-ONLY') === '1') {
+            return view('pos.partials.products', ['products' => $products]);
+        }
+
         $saved = collect($draft?->payload_json['items'] ?? []);
         $selected = Product::whereIn('id', $saved->pluck('product_id'))->get()->keyBy('id');
         $initialCart = $saved->filter(fn ($item) => isset($selected[$item['product_id']]))->map(fn ($item) => [

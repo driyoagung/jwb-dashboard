@@ -8,6 +8,7 @@ document.querySelectorAll('[data-pos-server-table]').forEach(table => {
     let timer;
     let syncing = false;
     const basePath = new URL(form.action, window.location.href).pathname;
+    const fastSearch = table.hasAttribute('data-pos-fast-search');
 
     function syncForm(freshForm) {
         syncing = true;
@@ -42,17 +43,19 @@ document.querySelectorAll('[data-pos-server-table]').forEach(table => {
         table.setAttribute('aria-busy', 'true');
         try {
             const response = await fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                headers: { 'X-Requested-With': 'XMLHttpRequest', ...(fastSearch ? { 'X-POS-RESULTS-ONLY': '1' } : {}) },
                 credentials: 'same-origin',
                 signal: controller.signal,
             });
             if (!response.ok || response.redirected) throw new Error('Gagal memuat tabel');
             const page = new DOMParser().parseFromString(await response.text(), 'text/html');
             const freshTable = page.querySelector('[data-pos-server-table]');
-            const freshResults = [...(freshTable?.querySelectorAll('[data-pos-results]') || [])];
+            const freshResults = fastSearch ? [...page.querySelectorAll('[data-pos-results]')] : [...(freshTable?.querySelectorAll('[data-pos-results]') || [])];
+            if (controller.signal.aborted) return;
             if (freshResults.length !== results.length) throw new Error('Hasil tabel tidak tersedia');
             results.forEach((section, index) => section.replaceChildren(...freshResults[index].childNodes));
-            if (filters) syncForm(freshTable.querySelector('[data-pos-live-filter]'));
+            if (filters && fastSearch) form.elements.namedItem('q').value = new URL(url).searchParams.get('q') || '';
+            else if (filters && freshTable) syncForm(freshTable.querySelector('[data-pos-live-filter]'));
             if (history && window.location.href !== String(url)) window.history.pushState({}, '', url);
             results.forEach(section => window.App?.initPage(section));
         } catch (error) {
@@ -91,7 +94,8 @@ document.querySelectorAll('[data-pos-server-table]').forEach(table => {
     form.addEventListener('input', event => {
         if (event.target.matches('input[type="search"]')) {
             clearTimeout(timer);
-            timer = setTimeout(filter, 300);
+            if (fastSearch && pending) pending.abort();
+            timer = setTimeout(filter, fastSearch ? 120 : 300);
         }
     });
     form.addEventListener('change', event => {

@@ -4,7 +4,11 @@
     <form method="GET" action="{{ $action }}" class="flex flex-wrap items-end gap-3" @if($live) data-pos-live-filter @endif>
         <div class="min-w-[12rem] flex-1 @unless($embedded) space-y-1.5 @endunless">
             <label class="{{ $embedded ? 'sr-only' : 'label' }}" for="{{ $searchName }}-filter">Pencarian</label>
-            <x-ui.input :id="$searchName.'-filter'" type="search" :name="$searchName" :value="$search ?? request($searchName)" :placeholder="$placeholder" icon="search" @if($barcode) data-barcode-input @endif />
+            @if($barcode)
+                <x-ui.input :id="$searchName.'-filter'" type="search" :name="$searchName" :value="$search ?? request($searchName)" :placeholder="$placeholder" icon="search" data-barcode-input />
+            @else
+                <x-ui.input :id="$searchName.'-filter'" type="search" :name="$searchName" :value="$search ?? request($searchName)" :placeholder="$placeholder" icon="search" />
+            @endif
         </div>
         {{ $slot }}
         @unless($live)<x-ui.button type="submit" size="sm"><x-ui.icon name="search" />Terapkan</x-ui.button>@endunless
