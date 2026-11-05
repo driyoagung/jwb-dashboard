@@ -1,7 +1,8 @@
 @php($editing = $product !== null)
 <x-layouts.admin :title="$editing ? 'Ubah produk' : 'Tambah produk'" group="Master data">
     <x-ui.page-header :title="$editing ? 'Ubah produk' : 'Tambah produk'" />
-    <form method="POST" enctype="multipart/form-data" action="{{ $editing ? route('pos.manage.products.update', $product) : route('pos.manage.products.store') }}" class="space-y-6">@csrf @if ($editing) @method('PUT') @endif
+    @if($editing)<a class="btn btn-outline btn-sm mb-4" href="{{ route('pos.manage.price-histories.index', ['product_id' => $product->id]) }}"><x-ui.icon name="activity" />Riwayat harga</a>@endif
+    <form method="POST" enctype="multipart/form-data" action="{{ $editing ? route('pos.manage.products.update', $product) : route('pos.manage.products.store') }}" class="space-y-6" data-product-pricing>@csrf @if ($editing) @method('PUT') @endif
         <x-ui.card title="Informasi produk"><div class="grid gap-5 md:grid-cols-2">
             <x-ui.field label="Nama" name="name" :required="true"><x-ui.input name="name" :value="$product?->name" placeholder="Contoh: Air Mineral 600 ml" required /></x-ui.field>
             <x-ui.field id="generated-sku" label="SKU" help="Dibuat otomatis saat produk disimpan dan tidak perlu diisi."><x-ui.input id="generated-sku" name="sku_preview" :value="$product?->sku" placeholder="Dibuat otomatis setelah disimpan" readonly disabled /></x-ui.field>
@@ -11,19 +12,19 @@
             </x-ui.field>
             <x-ui.field label="Kategori" name="category_id" :required="true"><x-ui.select name="category_id" placeholder="Pilih kategori" :value="$product?->category_id" :options="$categories" :searchable="true" required /></x-ui.field>
             <x-ui.field label="Satuan" name="unit_id" :required="true"><x-ui.select name="unit_id" placeholder="Pilih satuan" :value="$product?->unit_id" :options="$units" required /></x-ui.field>
-            <x-ui.field label="Harga jual (Rp)" name="sell_price" :required="true"><x-ui.input name="sell_price" type="number" min="0" :value="$product?->sell_price" placeholder="Contoh: 15.000" required data-grouped-number /></x-ui.field>
-            <x-ui.field label="Harga modal (Rp)" name="cost_price"><x-ui.input name="cost_price" type="number" min="0" :value="$product?->cost_price" placeholder="Contoh: 10.000" data-grouped-number /></x-ui.field>
+            <x-ui.field label="Harga jual (Rp)" name="sell_price" :required="true"><x-ui.input name="sell_price" type="number" min="0" :value="$product?->sell_price" placeholder="Contoh: 15.000" required data-grouped-number data-product-sell /></x-ui.field>
+            <x-ui.field label="Harga modal (Rp)" name="cost_price"><x-ui.input name="cost_price" type="number" min="0" :value="$product?->cost_price" placeholder="Contoh: 10.000" data-grouped-number data-product-cost aria-describedby="cost-price-warning" /><p id="cost-price-warning" class="field-error" role="status" data-price-warning hidden>Harga modal tidak boleh lebih besar dari harga jual.</p></x-ui.field>
             <x-ui.field label="Stok minimum" name="min_stock"><x-ui.input name="min_stock" type="number" min="0" :value="$product?->min_stock ?? 0" placeholder="Contoh: 10" required data-grouped-number /></x-ui.field>
             @unless ($editing)<x-ui.field label="Stok awal" name="initial_stock"><x-ui.input name="initial_stock" type="number" min="0" :value="0" placeholder="Jumlah stok saat dibuat" required data-grouped-number /></x-ui.field>@endunless
             <x-ui.field label="Deskripsi" name="description" class="md:col-span-2"><x-ui.textarea name="description" :value="$product?->description" placeholder="Deskripsi singkat produk (opsional)" /></x-ui.field>
             <x-ui.field label="Gambar produk (opsional)" name="image" class="md:col-span-2">
                 @if ($product?->image_path)
                     <div class="flex items-center gap-3 rounded-lg border bg-card p-3">
-                        <img src="{{ asset('storage/'.$product->image_path) }}" alt="Gambar {{ $product->name }}" class="h-12 w-12 rounded-md object-cover">
-                        <span class="text-sm text-muted-foreground">Gambar saat ini. Pilih berkas baru untuk menggantinya.</span>
+                        @if($imageAvailable)<img src="{{ $product->image_url }}" alt="Gambar {{ $product->name }}" class="h-12 w-12 rounded-md object-cover">@endif
+                        <span class="text-sm text-muted-foreground">{{ $imageAvailable ? 'Gambar saat ini. Pilih berkas baru untuk menggantinya.' : 'Berkas gambar lama tidak ditemukan. Silakan unggah ulang.' }}</span>
                     </div>
                 @endif
-                <x-ui.file-preview id="f-image" name="image" label="Pilih gambar produk" accept="image/png,image/jpeg" formats="PNG atau JPG" :max-mb="5" />
+                <x-ui.file-preview id="f-image" name="image" label="Pilih gambar produk" accept="image/png,image/jpeg,image/webp,image/gif" formats="JPG, PNG, WebP, atau GIF" :max-mb="5" />
                 @if ($product?->image_path)<x-ui.switch name="remove_image" label="Hapus gambar saat ini" hint="Berlaku jika tidak memilih gambar baru." />@endif
             </x-ui.field>
             <x-ui.field label="Status" name="is_active"><x-ui.switch name="is_active" label="Aktif" :checked="$product?->is_active ?? true" /></x-ui.field>

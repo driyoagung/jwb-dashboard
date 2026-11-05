@@ -34,6 +34,15 @@
   function fmt(v, c) {
     return (c.prefix || '') + Number(v).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + (c.suffix || '');
   }
+  function axisLabel(value) {
+    var units = [[1e12, 'T'], [1e9, 'M'], [1e6, 'jt'], [1e3, 'rb']];
+    for (var i = 0; i < units.length; i++) {
+      if (Math.abs(value) >= units[i][0]) {
+        return (value / units[i][0]).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + units[i][1];
+      }
+    }
+    return value.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+  }
   function ticks(max, n) {
     var raw = max / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), norm = raw / mag;
     var step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
@@ -78,14 +87,18 @@
   function cartesian(box, c) {
     var type = c.type, S = c.series, L = c.labels, n = L.length, stacked = type === 'stacked';
     var W = Math.max(box.clientWidth, 260), H = +c.height || 260;
-    var m = { l: 42, r: 8, t: 10, b: 26 }, iw = W - m.l - m.r, ih = H - m.t - m.b, base = m.t + ih;
     var max = 0, i;
     for (i = 0; i < n; i++) {
       var sum = 0;
       S.forEach(function (s) { var v = +s.data[i] || 0; sum = stacked ? sum + v : Math.max(sum, v); });
       max = Math.max(max, sum);
     }
-    var tk = ticks(max || 1, 4), top = tk[tk.length - 1], bw = iw / n;
+    var tickCount = Math.max(2, Math.min(4, Math.floor((H - 36) / 48)));
+    var tk = ticks(max || (c.prefix === 'Rp ' ? 1000 : 1), tickCount), top = tk[tk.length - 1];
+    var axisLabels = tk.map(axisLabel);
+    var labelWidth = Math.max.apply(null, axisLabels.map(function (label) { return label.length * 7; }));
+    var m = { l: Math.max(44, labelWidth + 16), r: 8, t: 10, b: 26 };
+    var iw = W - m.l - m.r, ih = H - m.t - m.b, base = m.t + ih, bw = iw / Math.max(n, 1);
     function X(k) { return m.l + bw * (k + 0.5); }
     function Y(v) { return base - (v / top) * ih; }
 
@@ -94,11 +107,12 @@
     var sv = svg('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': c.aria || 'Grafik' }, box);
     sv.style.cssText = 'display:block;width:100%;height:' + H + 'px';
 
-    tk.forEach(function (t) {
+    tk.forEach(function (t, index) {
       var y = Y(t);
       svg('line', { x1: m.l, x2: W - m.r, y1: y, y2: y, style: 'stroke:hsl(var(--border));' + (t ? 'stroke-dasharray:3 4' : '') }, sv);
       var tx = svg('text', { x: m.l - 8, y: y + 4, 'text-anchor': 'end', style: 'fill:hsl(var(--muted-foreground));font-size:11px' }, sv);
-      tx.textContent = t.toLocaleString('id-ID');
+      tx.textContent = axisLabels[index];
+      svg('title', {}, tx).textContent = fmt(t, c);
     });
     var every = Math.ceil(n / Math.max(1, Math.floor(iw / 46)));
     L.forEach(function (l, k) {

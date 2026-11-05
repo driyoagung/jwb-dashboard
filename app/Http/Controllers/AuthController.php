@@ -38,11 +38,12 @@ class AuthController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
+        $userId = $request->user()->id;
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route('login')->with('pos_clear_cart_user', $userId);
     }
 }

@@ -86,6 +86,21 @@ class TransactionController extends Controller
         });
     }
 
+    public function cancelPayment(Request $request, PosTransaction $transaction, MidtransPaymentService $payments): RedirectResponse
+    {
+        $this->authorizeTransaction($request, $transaction);
+        abort_unless($transaction->payment_method === 'midtrans', 404);
+        try {
+            $payments->cancel($transaction);
+        } catch (RuntimeException $exception) {
+            return back()->withErrors(['payment' => $exception->getMessage()]);
+        }
+
+        return back()->with('status', $transaction->status === 'completed'
+            ? 'Pembayaran sudah diterima. Transaksi tetap selesai dan stok tidak dikembalikan.'
+            : 'Pembayaran dibatalkan dan stok sudah dikembalikan.');
+    }
+
     public function retryPayment(Request $request, PosTransaction $transaction, MidtransPaymentService $payments): RedirectResponse
     {
         $this->authorizeTransaction($request, $transaction);

@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StockMovement extends Model
 {
-    public $timestamps = false;
+    public const UPDATED_AT = null;
 
     protected $fillable = ['product_id', 'user_id', 'transaction_id', 'type', 'delta_qty', 'before_qty', 'after_qty', 'reason'];
 
     protected function casts(): array
     {
-        return ['created_at' => 'datetime'];
+        return ['created_at' => 'immutable_datetime'];
     }
 
     public function product(): BelongsTo

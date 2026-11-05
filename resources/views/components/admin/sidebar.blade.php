@@ -1,8 +1,9 @@
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col overflow-hidden border-r bg-sidebar" aria-label="Navigasi utama">
     <div class="p-3">
-        <div class="flex w-full items-center">
-            <img src="{{ asset('logo.png') }}" alt="{{ config('kenanga.brand.name') }}" class="h-9 max-w-full object-contain">
-        </div>
+        <a href="{{ route('admin.dashboard') }}" class="flex cursor-pointer items-center gap-2 rounded-md p-2 font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" aria-label="Griyo POS, ke Dashboard">
+            <img src="{{ asset('logo_G.png') }}" alt="" class="h-9 w-9 shrink-0 object-contain">
+            <span class="sb-label truncate text-lg">Griyo <span class="text-primary">POS</span></span>
+        </a>
     </div>
 
     <nav class="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-3 pb-3 pt-1">

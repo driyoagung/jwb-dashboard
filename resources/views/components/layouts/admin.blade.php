@@ -4,7 +4,7 @@
 <head>
     <x-layouts.head :title="$title" />
 </head>
-<body data-sidebar="closed" class="font-sans text-sm antialiased">
+<body data-sidebar="closed" data-pos-clear-cart-keys="{{ json_encode(session('pos_clear_cart_keys', [])) }}" class="font-sans text-sm antialiased">
 <script>document.body.dataset.sidebar = window.innerWidth >= 1024 ? 'open' : 'closed';</script>
 <div id="overlay" class="fixed inset-0 z-40 bg-black/50" aria-hidden="true"></div>
 <x-admin.sidebar />

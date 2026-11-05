@@ -38,7 +38,11 @@ class ReportController extends Controller
         };
         $labels = [];
         $values = [];
+        $missingCosts = 0;
         if ($report === 'sales') {
+            $missingCosts = $this->sales($start, $end)->whereNull('cost_total')->count();
+            $profit = $this->sales($start, $end)->whereNotNull('cost_total')->selectRaw('SUM(subtotal - discount_amount - cost_total) as profit')->value('profit') ?? 0;
+            $summary['Laba kotor tercatat'] = 'Rp '.number_format($profit, 0, ',', '.');
             $zone = StoreSetting::current()->timezone;
             $first = CarbonImmutable::parse($filters['from'], $zone);
             $last = CarbonImmutable::parse($filters['to'], $zone);
@@ -50,20 +54,22 @@ class ReportController extends Controller
         $paymentBreakdown = $report === 'sales' ? $this->sales($start, $end)->select('payment_method')->selectRaw('COUNT(*) as transactions, SUM(grand_total) as total')->groupBy('payment_method')->get() : collect();
         $categories = $report === 'products' ? Category::orderBy('name')->pluck('name', 'id') : collect();
         $cashiers = $report === 'drafts' ? User::where('is_active', true)->orderBy('name')->pluck('name', 'id') : collect();
+        $zone = StoreSetting::current()->timezone;
 
-        return view('pos.reports.show', compact('report', 'title', 'rows', 'summary', 'filters', 'labels', 'values', 'paymentBreakdown', 'categories', 'cashiers'));
+        return view('pos.reports.show', compact('report', 'title', 'rows', 'summary', 'filters', 'labels', 'values', 'paymentBreakdown', 'categories', 'cashiers', 'zone', 'missingCosts'));
     }
 
     public function export(Request $request, string $report): StreamedResponse
     {
         $this->ensureType($report);
         [$filters, $start, $end] = $this->filters($request);
+        $zone = StoreSetting::current()->timezone;
 
-        return response()->streamDownload(function () use ($report, $start, $end, $filters): void {
+        return response()->streamDownload(function () use ($report, $start, $end, $filters, $zone): void {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
             $headers = match ($report) {
-                'sales' => ['Nomor', 'Waktu', 'Kasir', 'Metode', 'Total'],
+                'sales' => ['Nomor', 'Waktu', 'Kasir', 'Metode', 'Total', 'Modal', 'Laba kotor', 'Status modal'],
                 'products' => ['SKU', 'Produk', 'Qty', 'Omzet bruto'],
                 'stock' => ['SKU', 'Produk', 'Stok', 'Minimum', 'Harga modal', 'Nilai estimasi'],
                 'drafts' => ['ID', 'Kasir', 'Status', 'Dibuat', 'Kedaluwarsa'],
@@ -78,10 +84,10 @@ class ReportController extends Controller
             $records = $report === 'products' ? $query->cursor() : $query->lazyById(500);
             foreach ($records as $row) {
                 $values = match ($report) {
-                    'sales' => [$row->transaction_number, $row->completed_at, $row->cashier->name, $row->payment_method, $row->grand_total],
+                    'sales' => [$row->transaction_number, $row->completed_at->timezone($zone)->format('Y-m-d H:i:s'), $row->cashier->name, $row->payment_method_label, $row->grand_total, $row->cost_total, $row->gross_profit, $row->cost_total === null ? 'Modal belum tercatat' : 'Lengkap'],
                     'products' => [$row->product_sku, $row->product_name, $row->qty, $row->revenue],
                     'stock' => [$row->sku, $row->name, $row->stock_qty, $row->min_stock, $row->cost_price, $row->cost_price === null ? '' : $row->stock_qty * $row->cost_price],
-                    'drafts' => [$row->id, $row->cashier->name, $row->status === 'active' && $row->expires_at->isPast() ? 'expired' : $row->status, $row->created_at, $row->expires_at],
+                    'drafts' => [$row->id, $row->cashier->name, $row->status === 'active' && $row->expires_at->isPast() ? 'expired' : $row->status, $row->created_at->timezone($zone)->format('Y-m-d H:i:s'), $row->expires_at->timezone($zone)->format('Y-m-d H:i:s')],
                 };
                 fputcsv($out, array_map(static function ($value): string {
                     $value = (string) $value;

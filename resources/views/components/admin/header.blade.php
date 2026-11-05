@@ -10,7 +10,7 @@
         <x-ui.button variant="outline" size="icon" data-theme-toggle aria-label="Ganti tema" title="Ganti tema"><svg class="h-4 w-4" aria-hidden="true"><use class="js-theme-icon" href="{{ asset('icons.svg') }}#i-moon" /></svg></x-ui.button>
         <div class="relative" data-dropdown data-notifications data-feed-url="{{ route('pos.notifications.feed') }}" data-csrf="{{ csrf_token() }}">
             <x-ui.button variant="outline" size="icon" data-dropdown-toggle aria-expanded="false" aria-label="Notifikasi" title="Notifikasi"><x-ui.icon name="bell" /><span data-notification-indicator @if ($unreadNotificationCount === 0) hidden @endif class="absolute right-1 top-1 h-2 w-2 rounded-full bg-danger"></span></x-ui.button>
-            <div class="menu hidden w-96 max-w-[calc(100vw-2rem)]" role="menu">
+            <div class="menu hidden max-h-[calc(100dvh-4rem)] w-96 max-w-[calc(100vw-2rem)] overflow-y-auto" role="menu">
                 <div class="menu-label" data-notification-count>Notifikasi @if ($unreadNotificationCount > 0)({{ $unreadNotificationCount }} baru)@endif</div>
                 <div class="flex flex-wrap gap-2 px-3 py-2">
                     <form method="POST" action="{{ route('pos.notifications.read-all') }}">@csrf<x-ui.button type="submit" variant="outline" size="sm" data-notification-read-all :disabled="$unreadNotificationCount === 0"><x-ui.icon name="check" />Tandai semua</x-ui.button></form>

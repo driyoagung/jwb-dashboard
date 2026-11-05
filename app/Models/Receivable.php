@@ -15,6 +15,11 @@ class Receivable extends Model
         return ['due_date' => 'date'];
     }
 
+    public function isOverdue(string $storeDate): bool
+    {
+        return $this->status !== 'paid' && $this->due_date !== null && $this->due_date->toDateString() < $storeDate;
+    }
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);

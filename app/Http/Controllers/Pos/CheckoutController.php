@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Pos\CartQuoteRequest;
 use App\Http\Requests\Pos\CheckoutRequest;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\StoreSetting;
 use App\Models\TransactionDraft;
+use App\Services\CartQuoteService;
 use App\Services\CheckoutService;
 use App\Services\MidtransGateway;
 use App\Services\MidtransPaymentService;
+use App\Support\PosFeatures;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,7 +26,7 @@ class CheckoutController extends Controller
 {
     public function create(Request $request): View
     {
-        $filters = $request->validate(['q' => ['nullable', 'string', 'max:100'], 'draft' => ['nullable', 'integer', 'exists:transaction_drafts,id'], 'customer_id' => ['nullable', 'integer', 'exists:customers,id']]);
+        $filters = $request->validate(['q' => ['nullable', 'string', 'max:100'], 'draft' => ['nullable', 'integer', 'exists:transaction_drafts,id'], 'customer_id' => [PosFeatures::customersEnabled() ? 'nullable' : 'prohibited', 'integer', 'exists:customers,id']]);
         $draft = isset($filters['draft']) ? TransactionDraft::findOrFail($filters['draft']) : null;
         if ($draft && ! $request->user()->isAdmin() && $draft->cashier_id !== $request->user()->id) {
             abort(403);
@@ -40,11 +43,16 @@ class CheckoutController extends Controller
         $initialCart = $saved->filter(fn ($item) => isset($selected[$item['product_id']]))->map(fn ($item) => [
             'id' => (int) $item['product_id'], 'name' => $selected[$item['product_id']]->name,
             'price' => $selected[$item['product_id']]->sell_price, 'stock' => $selected[$item['product_id']]->stock_qty,
-            'image' => $selected[$item['product_id']]->image_path ? asset('storage/'.$selected[$item['product_id']]->image_path) : null,
+            'image' => $selected[$item['product_id']]->image_url,
             'qty' => (int) $item['qty'],
         ])->values()->all();
 
-        return view('pos.cashier', ['products' => $products, 'customers' => Customer::where('is_active', true)->orderBy('name')->pluck('name', 'id'), 'selectedCustomerId' => $filters['customer_id'] ?? null, 'settings' => StoreSetting::current(), 'key' => (string) Str::uuid(), 'draft' => $draft, 'initialCart' => $initialCart]);
+        return view('pos.cashier', ['products' => $products, 'customers' => PosFeatures::creditEnabled() ? Customer::where('is_active', true)->orderBy('name')->pluck('name', 'id') : collect(), 'selectedCustomerId' => $filters['customer_id'] ?? null, 'settings' => StoreSetting::current(), 'key' => (string) Str::uuid(), 'draft' => $draft, 'initialCart' => $initialCart]);
+    }
+
+    public function quote(CartQuoteRequest $request, CartQuoteService $quotes): JsonResponse
+    {
+        return response()->json($quotes->quote($request->validated()))->header('Cache-Control', 'no-store');
     }
 
     public function lookupBarcode(Request $request): JsonResponse
@@ -62,7 +70,7 @@ class CheckoutController extends Controller
             'name' => $product->name,
             'price' => $product->sell_price,
             'stock' => $product->stock_qty,
-            'image' => $product->image_path ? asset('storage/'.$product->image_path) : null,
+            'image' => $product->image_url,
         ])->header('Cache-Control', 'no-store');
     }
 
@@ -71,19 +79,23 @@ class CheckoutController extends Controller
         if ($request->validated('payment_method') === 'midtrans' && ! $gateway->configured()) {
             throw ValidationException::withMessages(['payment_method' => 'MIDTRANS_SERVER_KEY dan MIDTRANS_CLIENT_KEY harus diisi pada .env.']);
         }
+        if ($request->validated('payment_method') === 'transfer' && ! StoreSetting::current()->manualTransferConfigured()) {
+            throw ValidationException::withMessages(['payment_method' => 'Isi tujuan transfer manual di Pengaturan toko sebelum menerima pembayaran Transfer.']);
+        }
         $transaction = $checkout->checkout($request->user(), $request->validated());
         $cartStorageKey = ! empty($request->validated('draft_id')) ? 'pos-draft-'.$request->validated('draft_id').'-'.$request->user()->id : 'pos-cart-'.$request->user()->id;
+        $cartStorageKeys = array_values(array_unique(['pos-cart-'.$request->user()->id, $cartStorageKey]));
         if ($transaction->payment_method === 'midtrans' && $transaction->status === 'pending') {
             try {
                 $payments->start($transaction);
             } catch (RuntimeException $exception) {
                 if ($request->expectsJson()) {
-                    return response()->json(['transaction_url' => route('pos.transactions.show', $transaction), 'warning' => $exception->getMessage()]);
+                    return response()->json(['transaction_url' => route('pos.transactions.show', $transaction), 'warning' => $exception->getMessage(), 'clear_cart_keys' => $cartStorageKeys]);
                 }
 
                 return redirect()->route('pos.transactions.show', $transaction)
                     ->withErrors(['payment' => $exception->getMessage()])
-                    ->with('cart_storage_key', $cartStorageKey);
+                    ->with('pos_clear_cart_keys', $cartStorageKeys);
             }
         }
 
@@ -97,6 +109,7 @@ class CheckoutController extends Controller
                 'check_url' => route('pos.transactions.check-payment', $transaction),
                 'snap_token' => $transaction->status === 'pending' ? $transaction->midtrans_snap_token : null,
                 'status' => $transaction->status,
+                'clear_cart_keys' => $cartStorageKeys,
             ]);
         }
 
@@ -106,6 +119,6 @@ class CheckoutController extends Controller
                 'completed' => $transaction->payment_method === 'credit' ? 'Kasbon berhasil dicatat. Tagihan pelanggan masih terbuka.' : 'Transaksi berhasil diselesaikan.',
                 default => 'Pembayaran sebelumnya gagal. Buat transaksi baru untuk mencoba lagi.',
             })
-            ->with('cart_storage_key', $cartStorageKey);
+            ->with('pos_clear_cart_keys', $cartStorageKeys);
     }
 }

@@ -135,7 +135,17 @@ import 'sweetalert2/dist/sweetalert2.min.css';
         m.__cancelClose = null;
       });
     });
-    $$('[data-dropdown-toggle]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+    $$('[data-dropdown-toggle]').forEach(function (b) {
+      b.setAttribute('aria-expanded', String(!!except && $('.menu', b.closest('[data-dropdown]')) === except));
+    });
+  }
+  function positionMenu(tg, m) {
+    var r = tg.getBoundingClientRect(), mw = m.offsetWidth, mh = m.offsetHeight;
+    var left = m.classList.contains('menu-right') ? r.right - mw : r.left;
+    left = Math.max(8, Math.min(left, window.innerWidth - mw - 8));
+    var topPos = r.bottom + 4;
+    if (topPos + mh > window.innerHeight - 8 && r.top - 4 - mh > 8) topPos = r.top - 4 - mh;
+    m.style.left = left + 'px'; m.style.top = topPos + 'px';
   }
   function openMenu(tg) {
     var w = tg.closest('[data-dropdown]'), m = $('.menu', w);
@@ -145,12 +155,7 @@ import 'sweetalert2/dist/sweetalert2.min.css';
     delete m.dataset.closing;
     m.classList.remove('hidden');
     m.hidden = false;
-    var r = tg.getBoundingClientRect(), mw = m.offsetWidth, mh = m.offsetHeight;
-    var left = m.classList.contains('menu-right') ? r.right - mw : r.left;
-    left = Math.max(8, Math.min(left, window.innerWidth - mw - 8));
-    var topPos = r.bottom + 4;
-    if (topPos + mh > window.innerHeight - 8 && r.top - 4 - mh > 8) topPos = r.top - 4 - mh;
-    m.style.left = left + 'px'; m.style.top = topPos + 'px';
+    positionMenu(tg, m);
     tg.setAttribute('aria-expanded', 'true');
   }
 
@@ -259,7 +264,14 @@ import 'sweetalert2/dist/sweetalert2.min.css';
       next.focus(); selectTab(next);
     }
   });
-  window.addEventListener('scroll', closeMenus, true);
+  window.addEventListener('scroll', function () {
+    var notifications = $('[data-notifications]');
+    var menu = notifications && $('.menu', notifications);
+    if (menu && !menu.hidden && !menu.classList.contains('hidden') && !menu.dataset.closing) {
+      closeMenus(menu);
+      positionMenu($('[data-dropdown-toggle]', notifications), menu);
+    } else closeMenus();
+  }, true);
   window.addEventListener('resize', closeMenus);
 
   function selectTab(tab) {

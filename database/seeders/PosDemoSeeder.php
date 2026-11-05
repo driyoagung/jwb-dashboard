@@ -14,6 +14,7 @@ use App\Models\StoreSetting;
 use App\Models\TransactionDraft;
 use App\Models\Unit;
 use App\Models\User;
+use App\Support\PosFeatures;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -43,7 +44,9 @@ class PosDemoSeeder extends Seeder
             }
             $products = $this->products($users[0]);
             $this->sales($users, $products, $settings);
-            $this->credits($users);
+            if (PosFeatures::creditEnabled()) {
+                $this->credits($users);
+            }
             $this->notifications($users);
             $this->drafts($users, $products);
             $this->references($users[0]);
@@ -144,6 +147,11 @@ class PosDemoSeeder extends Seeder
                     && ! Product::withTrashed()->where('barcode', $this->demoBarcode($number))->whereKeyNot($product->id)->exists()) {
                     $product->update(['barcode' => $this->demoBarcode($number)]);
                 }
+                if ($product->wasRecentlyCreated) {
+                    foreach (['cost_price' => 'cost', 'sell_price' => 'sell'] as $field => $type) {
+                        $product->priceHistories()->create(['user_id' => $admin->id, 'price_type' => $type, 'old_price' => null, 'new_price' => $product->{$field}]);
+                    }
+                }
                 if ($product->wasRecentlyCreated && $openingQty > 0) {
                     $product->stock_qty = $openingQty;
                     $product->save();
@@ -194,7 +202,7 @@ class PosDemoSeeder extends Seeder
      */
     private function sales(array $users, array $products, StoreSetting $settings): void
     {
-        $methods = ['cash', 'transfer', 'qris', 'other'];
+        $methods = ['cash', 'transfer', 'qris'];
         for ($number = 1; $number <= 90; $number++) {
             $code = sprintf('DEMO-POS-%04d', $number);
             if (PosTransaction::query()->where('transaction_number', $code)->exists()) {
@@ -208,11 +216,13 @@ class PosDemoSeeder extends Seeder
                 : now()->subDays($dayOffset)->setTime(9 + ($number % 11), ($number * 7) % 60);
             $lines = [];
             $subtotal = 0;
+            $costTotal = 0;
             foreach (range(0, 1 + $number % 3) as $offset) {
                 $product = $products[($number * 7 + $offset * 11) % 30];
                 $qty = 1 + ($number + $offset) % 3;
                 $lines[] = [$product, $qty];
                 $subtotal += $product->sell_price * $qty;
+                $costTotal += $product->cost_price * $qty;
             }
             $discount = $number % 6 === 0 ? 2000 : 0;
             $tax = intdiv(($subtotal - $discount) * (int) round((float) $settings->tax_rate * 100) + 5000, 10000);
@@ -223,7 +233,7 @@ class PosDemoSeeder extends Seeder
                 'transaction_number' => $code, 'cashier_id' => $cashier->id,
                 'status' => 'completed', 'subtotal' => $subtotal,
                 'discount_amount' => $discount, 'tax_rate' => $settings->tax_rate,
-                'tax_amount' => $tax, 'grand_total' => $total,
+                'tax_amount' => $tax, 'grand_total' => $total, 'cost_total' => $costTotal,
                 'payment_method' => $method, 'amount_received' => $received,
                 'change_amount' => $received - $total,
                 'idempotency_key' => sprintf('00000000-0000-4000-8000-%012d', $number),
@@ -241,7 +251,7 @@ class PosDemoSeeder extends Seeder
                 $transaction->items()->create([
                     'product_id' => $product->id, 'category_id' => $product->category_id,
                     'product_name' => $product->name, 'product_sku' => $product->sku,
-                    'unit_name' => $product->unit->symbol, 'unit_price' => $product->sell_price,
+                    'unit_name' => $product->unit->symbol, 'unit_price' => $product->sell_price, 'unit_cost' => $product->cost_price,
                     'qty' => $qty, 'line_total' => $product->sell_price * $qty,
                 ]);
                 $product->stock_qty = $after;

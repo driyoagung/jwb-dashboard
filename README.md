@@ -37,7 +37,7 @@ Untuk produksi, konfigurasi `DB_CONNECTION=mysql` beserta variabel `DB_*` agar m
 | `/manage/reports/sales`, `/manage/reports/products`, `/manage/reports/stock`, `/manage/reports/drafts` | Admin aktif |
 | `/manage/users`, `/manage/settings` | Admin aktif |
 
-Admin dapat melihat semua transaksi dan draft; kasir hanya data miliknya. Draft aktif tidak mengurangi stok. Checkout mengunci produk, memvalidasi harga dan stok ulang, lalu membuat transaksi, item snapshot, serta movement secara atomik. Pembayaran transfer dan QRIS dicatat manual; Midtrans diperiksa melalui status pembayaran. Struk hanya tersedia untuk transaksi selesai; laporan dapat diekspor sebagai CSV.
+Admin dapat melihat semua transaksi dan draft; kasir hanya data miliknya. Draft aktif tidak mengurangi stok. Checkout mengunci produk, memvalidasi harga dan stok ulang, lalu membuat transaksi, item snapshot, serta movement secara atomik. Transfer dan QRIS manual menampilkan instruksi pembayaran terlebih dahulu; kasir harus memeriksa dana masuk dan mengonfirmasi sebelum transaksi dicatat selesai. Midtrans diperiksa melalui status pembayaran. Struk hanya tersedia untuk transaksi selesai; laporan dapat diekspor sebagai CSV.
 
 ### Scan barcode di kasir
 
@@ -46,6 +46,10 @@ Barcode produk disimpan pada kolom `products.barcode` yang unik dan opsional. Ad
 SKU produk baru dibuat otomatis saat disimpan dan tidak dapat diubah melalui form. Hapus menghilangkan produk dari katalog, kasir, dan daftar stok. Produk dengan riwayat transaksi atau pergerakan stok dihapus secara lunak supaya riwayat tetap utuh; barcode dibebaskan agar dapat dipakai produk baru. Produk tanpa riwayat dihapus permanen. Jalankan `php artisan migrate` setelah memperbarui aplikasi untuk menambahkan kolom penghapusan lunak.
 
 Pesan singkat aplikasi menggunakan toast SweetAlert2 di kanan atas, termasuk hasil scan, flash sukses, dan kesalahan validasi.
+
+### Transfer dan QRIS manual
+
+Admin mengisi bank/e-wallet, nomor tujuan, dan nama penerima di **Pengaturan toko** sebelum opsi Transfer dapat dipilih. QRIS memakai `public/qris_griyo.jpeg`. Setelah memilih Transfer atau QRIS dan menekan **Proses pembayaran**, kasir menampilkan instruksi kepada pembeli. Untuk QRIS statis, pembeli harus memasukkan nominal sesuai total. Kasir memeriksa dana masuk di aplikasi penerima, lalu menekan **Konfirmasi & proses pembayaran**. Sebelum konfirmasi terakhir, transaksi dan pengurangan stok belum dicatat. Sistem tidak memeriksa kedua metode manual ini secara otomatis.
 
 ### Pembayaran Midtrans Sandbox
 
@@ -125,6 +129,12 @@ Dashboard POS memakai tema terang secara bawaan, dengan aksen indigo dan radius 
 Navbar menyediakan pencarian global untuk produk, transaksi, dan nomor draft sesuai akses akun; tombol tema gelap; notifikasi transaksi, draft, dan penyesuaian stok; serta layar penuh. Notifikasi diperbarui setiap 20 detik dan dapat dibuka atau dihapus oleh pemiliknya. Layar penuh mempertahankan navigasi antarhalaman di dalam satu frame; tekan tombol layar penuh lagi atau `Esc` untuk keluar. Izin fullscreen tetap bergantung pada browser dan perangkat.
 
 ## Validasi
+
+Edisi klien menonaktifkan pelanggan dan kasbon secara bawaan. Untuk mengaktifkannya kembali, isi `POS_CUSTOMERS_ENABLED=true` dan `POS_CREDIT_ENABLED=true` pada `.env`, lalu jalankan `php artisan config:clear`. Data pelanggan/tagihan lama tidak dihapus. Metode CREDIT lama diberi label Kasbon (arsip), sedangkan OTHER berarti Lainnya (data lama); keduanya tetap diperhitungkan dalam omzet historis.
+
+Menu **Master data → Riwayat harga** mencatat harga awal serta perubahan modal/jual dengan pengguna dan waktunya pada `price_histories`. Perubahan sebelum fitur ini dipasang tidak direkonstruksi. Harga modal tidak boleh melebihi harga jual. Gambar produk menerima JPG/JPEG, PNG, WebP, atau GIF maksimal 5 MB; HEIC dan SVG perlu dikonversi. Gambar dilayani melalui route terautentikasi sehingga tidak bergantung pada junction `public/storage`.
+
+Laporan Penjualan dan CSV menyediakan modal serta laba kotor: subtotal dikurangi diskon dan modal saat checkout, tanpa pajak penjualan. Transaksi lama atau produk tanpa modal ditandai belum tercatat dan dikecualikan dari total laba kotor. Mengubah harga produk tidak menulis ulang modal transaksi lama. Jalankan `php artisan migrate` setelah memperbarui kode untuk memasang tabel riwayat harga dan kolom snapshot modal.
 
 ```bash
 php artisan test

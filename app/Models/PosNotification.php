@@ -11,7 +11,7 @@ class PosNotification extends Model
 
     protected function casts(): array
     {
-        return ['read_at' => 'datetime'];
+        return ['created_at' => 'immutable_datetime', 'updated_at' => 'immutable_datetime', 'read_at' => 'immutable_datetime'];
     }
 
     public function user(): BelongsTo

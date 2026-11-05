@@ -1,5 +1,5 @@
 <x-layouts.admin title="Notifikasi" group="Ringkasan">
-    <x-ui.page-header title="Notifikasi" description="Informasi transaksi dan aktivitas stok untuk akun Anda." />
+    <x-ui.page-header title="Notifikasi" :description="'Informasi transaksi dan aktivitas stok untuk akun Anda. Waktu ditampilkan dalam '.now($zone)->format('T').'.'" />
     <div class="card" data-pos-server-table>
         <div class="flex flex-wrap items-center justify-between gap-3 p-6 pb-4">
             <div><h2 class="card-title">Riwayat notifikasi</h2><p class="card-desc mt-1.5">Cari pemberitahuan dan lihat statusnya.</p></div>
@@ -24,7 +24,7 @@
                 @foreach ($notifications as $notification)
                     <tr>
                         <td><div class="flex items-center gap-3"><span class="avatar avatar-soft avatar-square"><x-ui.icon :name="match ($notification->type) { 'sale' => 'cart', 'draft' => 'file-text', 'credit' => 'card', default => 'package' }" /></span><div class="leading-tight"><p class="font-medium">{{ $notification->title }}</p><p class="text-xs text-muted-foreground">{{ $notification->message }}</p></div></div></td>
-                        <td class="text-muted-foreground">{{ $notification->created_at->format('d M Y H:i') }}</td>
+                        <td class="text-muted-foreground">{{ $notification->created_at->timezone($zone)->format('d M Y H:i') }}</td>
                         <td><x-ui.badge :variant="$notification->read_at ? 'neutral' : 'info'" dot>{{ $notification->read_at ? 'Dibaca' : 'Baru' }}</x-ui.badge></td>
                         <td><div class="flex flex-wrap gap-2 whitespace-nowrap">
                             <form method="POST" action="{{ route('pos.notifications.read', $notification) }}">@csrf<x-ui.button type="submit" variant="info" size="sm"><x-ui.icon name="eye" />Buka</x-ui.button></form>

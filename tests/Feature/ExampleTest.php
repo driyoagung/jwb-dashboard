@@ -50,6 +50,21 @@ class ExampleTest extends TestCase
             ->assertSee('aria-current="page"', false);
     }
 
+    public function test_login_brand_and_sidebar_home_link_use_separate_icon_and_text(): void
+    {
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('logo_G.png')
+            ->assertSee('Kelola penjualan dan stok')
+            ->assertSee('data-password-toggle', false);
+
+        $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/dashboard')
+            ->assertOk()
+            ->assertSee('aria-label="Griyo POS, ke Dashboard"', false)
+            ->assertSee('href="'.route('admin.dashboard').'"', false)
+            ->assertSee('logo_G.png');
+    }
+
     public function test_pos_shell_shows_only_pos_navigation_and_fixed_appearance(): void
     {
         $response = $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/dashboard');

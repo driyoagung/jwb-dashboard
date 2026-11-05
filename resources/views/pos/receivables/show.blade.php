@@ -12,6 +12,6 @@
     </x-ui.card>@endif
     <x-ui.card title="Riwayat pembayaran">
         @if ($receivable->payments->isEmpty())<x-ui.table-state state="empty" title="Belum ada pembayaran" />
-        @else<div class="overflow-x-auto"><table class="table table-striped"><thead><tr><th>Waktu</th><th>Kasir</th><th>Metode</th><th>Nominal</th><th>Catatan</th></tr></thead><tbody>@foreach ($receivable->payments as $payment)<tr><td>{{ $payment->created_at->format('d M Y H:i') }}</td><td>{{ $payment->user->name }}</td><td><x-ui.badge variant="info">{{ strtoupper($payment->method) }}</x-ui.badge></td><td>Rp {{ number_format($payment->amount, 0, ',', '.') }}</td><td>{{ $payment->note ?: '-' }}</td></tr>@endforeach</tbody></table></div>@endif
+        @else<div class="overflow-x-auto"><table class="table table-striped"><thead><tr><th>Waktu</th><th>Kasir</th><th>Metode</th><th>Nominal</th><th>Catatan</th></tr></thead><tbody>@foreach ($receivable->payments as $payment)<tr><td>{{ $payment->created_at->timezone($zone)->format('d M Y H:i') }}</td><td>{{ $payment->user->name }}</td><td><x-ui.badge variant="info">{{ strtoupper($payment->method) }}</x-ui.badge></td><td>Rp {{ number_format($payment->amount, 0, ',', '.') }}</td><td>{{ $payment->note ?: '-' }}</td></tr>@endforeach</tbody></table></div>@endif
     </x-ui.card>
 </x-layouts.admin>

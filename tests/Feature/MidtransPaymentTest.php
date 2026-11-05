@@ -12,6 +12,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\MidtransGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Mockery;
 use Tests\TestCase;
@@ -55,6 +56,91 @@ class MidtransPaymentTest extends TestCase
     private function midtransStatus(PosTransaction $transaction, string $remote): array
     {
         return ['order_id' => $transaction->transaction_number, 'status_code' => '200', 'gross_amount' => '20000.00', 'transaction_status' => $remote];
+    }
+
+    public function test_failed_initiation_can_be_recovered_and_cancelled_once(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $product = $this->product();
+        config(['services.midtrans.server_key' => 'sandbox-test-key', 'services.midtrans.client_key' => 'sandbox-client-key']);
+        $gateway = Mockery::mock(MidtransGateway::class);
+        $gateway->shouldReceive('configured')->andReturnTrue();
+        $gateway->shouldReceive('create')->once()->andThrow(new \RuntimeException('Connection timeout'));
+        $gateway->shouldReceive('create')->once()->andReturn(['token' => 'recovered-token', 'url' => 'https://app.sandbox.midtrans.com/snap/v4/redirection/recovered']);
+        $gateway->shouldReceive('status')->twice()->andReturnNull();
+        $gateway->shouldReceive('cancelSession')->once()->andReturnTrue();
+        $this->app->instance(MidtransGateway::class, $gateway);
+        $this->actingAs($cashier)->postJson(route('pos.checkout'), $this->payload($product))->assertOk();
+        $transaction = PosTransaction::query()->sole();
+        $this->assertSame(3, $product->fresh()->stock_qty);
+        $this->post(route('pos.transactions.cancel-payment', $transaction))->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame('failed', $transaction->fresh()->status);
+        $this->assertSame(5, $product->fresh()->stock_qty);
+        $this->post(route('pos.transactions.cancel-payment', $transaction))->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame(5, $product->fresh()->stock_qty);
+        $this->assertSame(1, StockMovement::where('type', 'release')->count());
+    }
+
+    public function test_pending_payment_is_only_restocked_after_remote_cancellation(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $product = $this->product();
+        $gateway = $this->gateway();
+        $this->actingAs($cashier)->postJson(route('pos.checkout'), $this->payload($product))->assertOk();
+        $transaction = PosTransaction::query()->sole();
+        $gateway->shouldReceive('status')->once()->andReturn($this->midtransStatus($transaction, 'pending'));
+        $gateway->shouldReceive('cancel')->once();
+        $gateway->shouldReceive('status')->once()->andReturn($this->midtransStatus($transaction, 'cancel'));
+        $this->post(route('pos.transactions.cancel-payment', $transaction))->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame('failed', $transaction->fresh()->status);
+        $this->assertSame(5, $product->fresh()->stock_qty);
+    }
+
+    public function test_uncertain_cancellation_keeps_stock_reserved_and_other_cashiers_are_forbidden(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $product = $this->product();
+        $gateway = $this->gateway();
+        $this->actingAs($cashier)->postJson(route('pos.checkout'), $this->payload($product))->assertOk();
+        $transaction = PosTransaction::query()->sole();
+        $this->actingAs(User::factory()->create(['role' => 'cashier']))->post(route('pos.transactions.cancel-payment', $transaction))->assertForbidden();
+        $gateway->shouldReceive('status')->twice()->andReturn($this->midtransStatus($transaction, 'pending'));
+        $gateway->shouldReceive('cancel')->once();
+        $this->actingAs($cashier)->post(route('pos.transactions.cancel-payment', $transaction))->assertRedirect()->assertSessionHasErrors('payment');
+        $this->assertSame('pending', $transaction->fresh()->status);
+        $this->assertSame(3, $product->fresh()->stock_qty);
+        $this->assertSame(0, StockMovement::where('type', 'release')->count());
+    }
+
+    public function test_a_payment_settling_during_session_cancellation_is_not_restocked(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $product = $this->product();
+        $gateway = $this->gateway();
+        $this->actingAs($cashier)->postJson(route('pos.checkout'), $this->payload($product))->assertOk();
+        $transaction = PosTransaction::query()->sole();
+        $gateway->shouldReceive('status')->once()->andReturnNull();
+        $gateway->shouldReceive('cancelSession')->once()->andReturnFalse();
+        $gateway->shouldReceive('status')->once()->andReturn($this->midtransStatus($transaction, 'settlement'));
+        $this->post(route('pos.transactions.cancel-payment', $transaction))->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame('completed', $transaction->fresh()->status);
+        $this->assertSame(3, $product->fresh()->stock_qty);
+        $this->assertSame(0, StockMovement::where('type', 'release')->count());
+    }
+
+    public function test_snap_cancellation_checks_provider_confirmation_and_environment(): void
+    {
+        config(['services.midtrans.server_key' => 'sandbox-test-key', 'services.midtrans.is_production' => false]);
+        Http::preventStrayRequests();
+        Http::fake(['app.sandbox.midtrans.com/*' => Http::sequence()
+            ->push(['canceled_at' => '2026-10-29T13:00:00Z'])
+            ->push(['error_messages' => ['token not found']], 404)]);
+        $transaction = new PosTransaction(['midtrans_snap_token' => 'snap-test-token']);
+        $this->assertTrue(app(MidtransGateway::class)->cancelSession($transaction));
+        Http::assertSent(fn ($request) => $request->url() === 'https://app.sandbox.midtrans.com/snap/v1/transactions/snap-test-token/cancel'
+            && $request->hasHeader('Authorization', 'sandbox-test-key'));
+        $this->expectException(\RuntimeException::class);
+        app(MidtransGateway::class)->cancelSession($transaction);
     }
 
     public function test_pending_payment_completes_once_after_manual_check(): void

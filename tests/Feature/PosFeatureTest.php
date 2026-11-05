@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Category;
+use App\Models\PosNotification;
 use App\Models\PosTransaction;
 use App\Models\Product;
 use App\Models\StockMovement;
@@ -10,6 +11,7 @@ use App\Models\StoreSetting;
 use App\Models\TransactionDraft;
 use App\Models\Unit;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -34,6 +36,110 @@ class PosFeatureTest extends TestCase
         $product->save();
 
         return $product;
+    }
+
+    public function test_successful_draft_actions_and_checkout_clear_the_correct_cart_keys(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $product = $this->product();
+        $this->actingAs($cashier);
+        $items = ['items' => [['product_id' => $product->id, 'qty' => 1]]];
+        $this->post(route('pos.drafts.store'), $items)->assertRedirect(route('pos.drafts.index'))
+            ->assertSessionHas('pos_clear_cart_keys', ['pos-cart-'.$cashier->id]);
+        $draft = TransactionDraft::query()->sole();
+        $this->get(route('pos.drafts.index'))->assertOk()->assertSee('data-pos-clear-cart-keys', false);
+        $this->post(route('pos.drafts.store'), [])->assertSessionHasErrors('items')->assertSessionMissing('pos_clear_cart_keys');
+        $keys = ['pos-cart-'.$cashier->id, 'pos-draft-'.$draft->id.'-'.$cashier->id];
+        $this->put(route('pos.drafts.update', $draft), $items)->assertRedirect()->assertSessionHas('pos_clear_cart_keys', $keys);
+        $this->postJson(route('pos.checkout'), $items + [
+            'draft_id' => $draft->id, 'idempotency_key' => (string) Str::uuid(), 'payment_method' => 'cash', 'amount_received' => 10000,
+        ])->assertOk()->assertJsonPath('clear_cart_keys', $keys);
+        $this->assertSame('completed', $draft->fresh()->status);
+        $this->assertDatabaseCount('transactions', 1);
+    }
+
+    public function test_logout_requests_cleanup_for_only_the_authenticated_cashier(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $this->actingAs($cashier)->post(route('logout'))->assertRedirect(route('login'))
+            ->assertSessionHas('pos_clear_cart_user', $cashier->id);
+        $this->get(route('login'))->assertOk()->assertSee('data-pos-clear-cart-user="'.$cashier->id.'"', false);
+        $this->assertGuest();
+    }
+
+    public function test_all_activity_times_and_draft_expiry_agree_in_each_store_timezone(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $product = $this->product(10);
+        $this->actingAs($admin);
+        $this->travelTo(CarbonImmutable::parse('2026-10-30 00:37:00', 'UTC'));
+        foreach (['Asia/Jakarta' => 7, 'Asia/Makassar' => 8, 'Asia/Jayapura' => 9] as $zone => $hour) {
+            StoreSetting::current()->update(['timezone' => $zone, 'draft_expiry_hours' => 1]);
+            $this->post(route('pos.drafts.store'), ['items' => [['product_id' => $product->id, 'qty' => 1]]])->assertSessionHasNoErrors();
+            $draft = TransactionDraft::latest('id')->firstOrFail();
+            $expected = '30 Oct 2026 '.sprintf('%02d:37', $hour);
+            $expiry = '30 Oct 2026 '.sprintf('%02d:37', $hour + 1);
+            $this->get(route('pos.drafts.index'))->assertOk()->assertSee($expiry);
+            $this->postJson(route('pos.checkout'), [
+                'items' => [['product_id' => $product->id, 'qty' => 1]], 'draft_id' => $draft->id,
+                'payment_method' => 'cash', 'amount_received' => 10000, 'idempotency_key' => (string) Str::uuid(),
+            ])->assertOk();
+            $transaction = PosTransaction::latest('id')->firstOrFail();
+            $this->get(route('pos.transactions.show', $transaction))->assertOk()->assertSee($expected);
+            $this->get(route('pos.transactions.index'))->assertOk()->assertSee($expected);
+            $this->get(route('pos.notifications.index'))->assertOk()->assertSee($expected);
+            $this->get(route('pos.manage.stock.movements'))->assertOk()->assertSee($expected);
+            $this->get(route('pos.transactions.receipt', $transaction))->assertOk()->assertSee($expected)->assertSee('logo_G.png')->assertSee('TOTAL:');
+            $notification = PosNotification::where('type', 'sale')->latest('id')->firstOrFail();
+            $notification->created_at->timezone($zone);
+            $this->assertSame('UTC', $notification->created_at->timezoneName);
+            $this->assertSame('2026-10-30 00:37:00', $transaction->getRawOriginal('created_at'));
+            $this->assertSame('2026-10-30 01:37:00', $draft->getRawOriginal('expires_at'));
+        }
+        $this->travelBack();
+    }
+
+    public function test_cart_quote_refreshes_prices_and_stock_without_writing_a_sale(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $product = $this->product(3);
+        $product->update(['sell_price' => 12000]);
+        $payload = ['items' => [['product_id' => $product->id, 'qty' => 4]], 'discount_amount' => 1000];
+        $this->postJson(route('pos.cashier.quote'), $payload)->assertUnauthorized();
+        $this->actingAs($cashier)->postJson(route('pos.cashier.quote'), $payload)
+            ->assertOk()->assertJsonPath('items.0.price', 12000)->assertJsonPath('items.0.stock', 3)
+            ->assertJsonPath('subtotal', 48000)->assertJsonPath('grand_total', 47000)
+            ->assertJsonPath('can_checkout', false)->assertJsonCount(1, 'issues');
+        $product->delete();
+        $this->postJson(route('pos.cashier.quote'), $payload)->assertOk()
+            ->assertJsonPath('items.0.available', false)->assertJsonPath('items.0.stock', 0);
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertDatabaseCount('stock_movements', 0);
+    }
+
+    public function test_checkout_rejects_a_stale_quote_before_taking_payment(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $product = $this->product();
+        $this->actingAs($cashier);
+        $items = ['items' => [['product_id' => $product->id, 'qty' => 1]], 'discount_amount' => 500];
+        $quote = $this->postJson(route('pos.cashier.quote'), $items)->assertOk()->json();
+        $product->update(['sell_price' => 15000]);
+        $payload = $items + ['idempotency_key' => (string) Str::uuid(), 'payment_method' => 'cash', 'amount_received' => 20000, 'quote_hash' => $quote['quote_hash']];
+        $this->postJson(route('pos.checkout'), $payload)->assertUnprocessable()->assertJsonValidationErrors('quote_hash');
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertSame(5, $product->fresh()->stock_qty);
+        $quote = $this->postJson(route('pos.cashier.quote'), $items)->json();
+        StoreSetting::current()->update(['tax_rate' => 11]);
+        $payload['quote_hash'] = $quote['quote_hash'];
+        $this->postJson(route('pos.checkout'), $payload)->assertUnprocessable()->assertJsonValidationErrors('quote_hash');
+        $quote = $this->postJson(route('pos.cashier.quote'), $items)->json();
+        $payload['quote_hash'] = $quote['quote_hash'];
+        $this->postJson(route('pos.checkout'), $payload)->assertOk()->assertJsonPath('status', 'completed');
+        $this->assertSame($quote['grand_total'], PosTransaction::query()->sole()->grand_total);
+        $this->postJson(route('pos.checkout'), $payload)->assertOk();
+        $this->assertDatabaseCount('transactions', 1);
+        $this->assertSame(4, $product->fresh()->stock_qty);
     }
 
     public function test_private_routes_and_role_scope(): void
@@ -108,6 +214,66 @@ class PosFeatureTest extends TestCase
         $this->get($response->json('transaction_url'))
             ->assertOk()
             ->assertSee('data-flash-status="Transaksi berhasil diselesaikan."', false);
+    }
+
+    public function test_manual_qris_and_transfer_require_cashier_confirmation_and_transfer_configuration(): void
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $product = $this->product();
+        $this->assertFileExists(public_path('qris_griyo.jpeg'));
+        $this->actingAs($cashier)->get(route('pos.cashier'))
+            ->assertOk()
+            ->assertSee('manual-payment-confirmation')
+            ->assertSee('qris_griyo.jpeg');
+
+        $payload = [
+            'idempotency_key' => (string) Str::uuid(),
+            'items' => [['product_id' => $product->id, 'qty' => 1]],
+            'payment_method' => 'qris',
+            'amount_received' => 10000,
+        ];
+        $this->postJson(route('pos.checkout'), $payload)->assertUnprocessable()->assertJsonValidationErrors('manual_payment_confirmed');
+        $this->assertDatabaseCount('transactions', 0);
+
+        $this->postJson(route('pos.checkout'), $payload + ['manual_payment_confirmed' => '1'])
+            ->assertOk()->assertJsonPath('status', 'completed');
+        $this->assertDatabaseHas('transactions', ['payment_method' => 'qris', 'status' => 'completed']);
+
+        $payload['idempotency_key'] = (string) Str::uuid();
+        $payload['payment_method'] = 'transfer';
+        $this->postJson(route('pos.checkout'), $payload + ['manual_payment_confirmed' => '1'])
+            ->assertUnprocessable()->assertJsonValidationErrors('payment_method');
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin)->put(route('pos.manage.settings.update'), [
+            'store_name' => 'Griyo POS', 'tax_rate' => 0, 'draft_expiry_hours' => 24,
+            'max_active_drafts' => 20, 'timezone' => 'Asia/Jakarta',
+            'manual_transfer_provider' => 'DANA', 'manual_transfer_number' => '08123456789',
+            'manual_transfer_name' => 'Pemilik Toko',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $this->actingAs($cashier)->get(route('pos.cashier'))->assertSee('08123456789');
+        $this->postJson(route('pos.checkout'), $payload + ['manual_payment_confirmed' => '1'])
+            ->assertOk()->assertJsonPath('status', 'completed');
+        $this->assertDatabaseHas('transactions', ['payment_method' => 'transfer', 'status' => 'completed']);
+    }
+
+    public function test_draft_and_stock_movement_times_follow_store_timezone(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $product = $this->product();
+        StoreSetting::current()->update(['timezone' => 'Asia/Jakarta']);
+        TransactionDraft::create([
+            'cashier_id' => $admin->id, 'status' => 'active',
+            'expires_at' => CarbonImmutable::parse('2026-10-29 13:25:00', 'UTC'),
+            'payload_json' => ['items' => []],
+        ]);
+        StockMovement::create([
+            'product_id' => $product->id, 'user_id' => $admin->id, 'type' => 'in',
+            'delta_qty' => 1, 'before_qty' => 5, 'after_qty' => 6, 'reason' => 'Tes zona waktu',
+        ])->forceFill(['created_at' => CarbonImmutable::parse('2026-10-29 13:25:00', 'UTC')])->save();
+
+        $this->actingAs($admin)->get(route('pos.drafts.index'))->assertOk()->assertSee('29 Oct 2026 20:25');
+        $this->get(route('pos.manage.stock.movements'))->assertOk()->assertSee('29 Oct 2026 20:25');
     }
 
     public function test_checkout_rejects_insufficient_stock_and_payment(): void
@@ -235,9 +401,10 @@ class PosFeatureTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $product = $this->product();
         $product->update(['name' => '=FORMULA']);
+        StoreSetting::current()->update(['manual_transfer_provider' => 'DANA', 'manual_transfer_number' => '08123456789', 'manual_transfer_name' => 'Pemilik Toko']);
         $this->actingAs($admin)->post(route('pos.checkout'), [
             'idempotency_key' => (string) Str::uuid(), 'items' => [['product_id' => $product->id, 'qty' => 1]],
-            'payment_method' => 'transfer', 'amount_received' => 10000,
+            'payment_method' => 'transfer', 'amount_received' => 10000, 'manual_payment_confirmed' => '1',
         ])->assertRedirect();
         $this->actingAs($admin)->get(route('pos.manage.reports.show', 'sales'))->assertOk()->assertSee('10.000');
         $export = $this->actingAs($admin)->get(route('pos.manage.reports.export', 'products'));
@@ -336,7 +503,7 @@ class PosFeatureTest extends TestCase
         $this->actingAs($admin)->delete(route('pos.manage.categories.destroy', $product->category))->assertSessionHasErrors('delete');
     }
 
-    public function test_sku_is_generated_once_and_product_without_history_is_removed(): void
+    public function test_sku_is_generated_once_and_product_price_audit_survives_catalog_removal(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
         $category = Category::create(['name' => 'Camilan', 'is_active' => true]);
@@ -360,7 +527,7 @@ class PosFeatureTest extends TestCase
         $this->assertSame($products[0]->sku, $products[0]->fresh()->sku);
 
         $this->delete(route('pos.manage.products.destroy', $products[0]))->assertRedirect();
-        $this->assertNull(Product::withTrashed()->find($products[0]->id));
+        $this->assertSoftDeleted('products', ['id' => $products[0]->id]);
         $this->assertSame(1, Product::count());
     }
 
@@ -380,7 +547,7 @@ class PosFeatureTest extends TestCase
         $firstPath = $product->fresh()->image_path;
         $this->assertNotNull($firstPath);
         Storage::disk('public')->assertExists($firstPath);
-        $this->get(route('pos.cashier'))->assertOk()->assertSee('storage/'.$firstPath)->assertSee('Tambah ke keranjang');
+        $this->get(route('pos.cashier'))->assertOk()->assertSee(route('pos.products.image', ['product' => $product->id]), false)->assertSee('Tambah ke keranjang');
 
         $this->put(route('pos.manage.products.update', $product), $data + ['image' => UploadedFile::fake()->image('dua.png')])
             ->assertRedirect()->assertSessionHasNoErrors();

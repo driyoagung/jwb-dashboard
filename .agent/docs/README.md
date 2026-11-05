@@ -14,6 +14,7 @@ Mulai dari [aturan utama](../README.md), lalu pilih kelompok yang sesuai dengan 
 - [Resep halaman](implementasi/resep-halaman.md) - susunan dashboard, daftar, form, detail, dan login.
 - [CRUD referensi](implementasi/referensi-crud.md) - jalur kode nyata yang dapat ditiru.
 - [Data besar](implementasi/data-besar.md) - filter, pagination, ekspor, dan grafik di server.
+- [Aturan bisnis POS](../../docs/pos/business-rules.md) - harga dan laba, unggah gambar, pembayaran, serta konfigurasi fitur pelanggan/kasbon.
 
 ## Standar kerja
 

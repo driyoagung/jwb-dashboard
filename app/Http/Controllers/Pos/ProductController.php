@@ -59,6 +59,7 @@ class ProductController extends Controller
             'product' => $product,
             'categories' => Category::where('is_active', true)->orderBy('name')->pluck('name', 'id'),
             'units' => Unit::where('is_active', true)->orderBy('name')->pluck('name', 'id'),
+            'imageAvailable' => $product?->image_path ? Storage::disk('public')->exists($product->image_path) : false,
         ]);
     }
 
@@ -76,6 +77,7 @@ class ProductController extends Controller
         try {
             DB::transaction(function () use ($data, $initial, $stock, $request): void {
                 $product = Product::create($data);
+                $this->recordPrices($product, $request->user()->id, ['cost_price' => null, 'sell_price' => null]);
                 if ($initial > 0) {
                     $stock->adjust($product, $request->user(), 'in', $initial, 'Stok awal produk');
                 }
@@ -98,21 +100,28 @@ class ProductController extends Controller
         if ($imagePath === false) {
             throw new RuntimeException('Gambar produk gagal disimpan.');
         }
-        $oldImagePath = $product->image_path;
         if ($imagePath) {
             $data['image_path'] = $imagePath;
         } elseif ($request->boolean('remove_image')) {
             $data['image_path'] = null;
         }
         try {
-            $product->update($data);
+            $oldImagePath = DB::transaction(function () use ($product, $request, $data): ?string {
+                $locked = Product::query()->lockForUpdate()->findOrFail($product->id);
+                $oldPrices = $locked->only(['cost_price', 'sell_price']);
+                $oldPath = $locked->image_path;
+                $locked->update($data);
+                $this->recordPrices($locked, $request->user()->id, $oldPrices);
+
+                return $oldPath;
+            }, 3);
         } catch (Throwable $exception) {
             if ($imagePath) {
                 Storage::disk('public')->delete($imagePath);
             }
             throw $exception;
         }
-        if ($oldImagePath && $oldImagePath !== $product->image_path) {
+        if ($oldImagePath && array_key_exists('image_path', $data) && $oldImagePath !== $data['image_path']) {
             Storage::disk('public')->delete($oldImagePath);
         }
 
@@ -121,7 +130,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
-        if ($product->transactionItems()->exists() || $product->movements()->exists()) {
+        if ($product->transactionItems()->exists() || $product->movements()->exists() || $product->priceHistories()->exists()) {
             DB::transaction(function () use ($product): void {
                 $product->update(['is_active' => false, 'barcode' => null]);
                 $product->delete();
@@ -135,5 +144,19 @@ class ProductController extends Controller
         }
 
         return back()->with('status', 'Produk dihapus.');
+    }
+
+    /** @param array{cost_price: ?int, sell_price: ?int} $before */
+    private function recordPrices(Product $product, int $userId, array $before): void
+    {
+        foreach (['cost_price' => 'cost', 'sell_price' => 'sell'] as $field => $type) {
+            if ($before[$field] === $product->{$field}) {
+                continue;
+            }
+            $product->priceHistories()->create([
+                'user_id' => $userId, 'price_type' => $type,
+                'old_price' => $before[$field], 'new_price' => $product->{$field},
+            ]);
+        }
     }
 }

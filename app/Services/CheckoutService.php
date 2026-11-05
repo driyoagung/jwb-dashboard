@@ -9,6 +9,7 @@ use App\Models\StockMovement;
 use App\Models\StoreSetting;
 use App\Models\TransactionDraft;
 use App\Models\User;
+use App\Support\PosFeatures;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -16,11 +17,14 @@ use Illuminate\Validation\ValidationException;
 
 class CheckoutService
 {
-    public function __construct(private readonly PosNotifier $notifier) {}
+    public function __construct(private readonly PosNotifier $notifier, private readonly CartQuoteService $quotes) {}
 
     /** @param array<string, mixed> $data */
     public function checkout(User $actor, array $data): PosTransaction
     {
+        if ($data['payment_method'] === 'credit' && ! PosFeatures::creditEnabled()) {
+            throw ValidationException::withMessages(['payment_method' => 'Kasbon tidak tersedia pada versi aplikasi ini.']);
+        }
         $existing = PosTransaction::where('idempotency_key', $data['idempotency_key'])->first();
         if ($existing) {
             return $this->existingFor($existing, $actor);
@@ -53,8 +57,11 @@ class CheckoutService
                 $subtotal = 0;
                 foreach ($qtyById as $id => $qty) {
                     $product = $products[$id];
-                    if (! $product->is_active || $product->stock_qty < $qty) {
-                        throw ValidationException::withMessages(['items' => "Produk {$product->name} nonaktif atau stok tidak cukup."]);
+                    if (! $product->is_active) {
+                        throw ValidationException::withMessages(['items' => "Produk {$product->name} nonaktif. Hapus produk ini dari keranjang."]);
+                    }
+                    if ($product->stock_qty < $qty) {
+                        throw ValidationException::withMessages(['items' => "Stok {$product->name} tersisa {$product->stock_qty}; jumlah diminta {$qty}. Sesuaikan jumlah sebelum membayar."]);
                     }
                     $subtotal += $product->sell_price * $qty;
                 }
@@ -63,9 +70,14 @@ class CheckoutService
                     throw ValidationException::withMessages(['discount_amount' => 'Diskon melebihi subtotal.']);
                 }
                 $settings = StoreSetting::current();
-                $basis = (int) round((float) $settings->tax_rate * 100);
-                $tax = intdiv(($subtotal - $discount) * $basis + 5000, 10000);
-                $total = $subtotal - $discount + $tax;
+                $quote = $this->quotes->totals($products, $qtyById, $discount, $settings);
+                if (isset($data['quote_hash']) && ! hash_equals($quote['quote_hash'], $data['quote_hash'])) {
+                    throw ValidationException::withMessages(['quote_hash' => 'Harga atau pajak berubah. Perbarui keranjang dan periksa total terbaru sebelum membayar.']);
+                }
+                $tax = $quote['tax_amount'];
+                $total = $quote['grand_total'];
+                $costTotal = $products->contains(fn (Product $product) => $product->cost_price === null)
+                    ? null : $products->sum(fn (Product $product) => $product->cost_price * $qtyById[$product->id]);
                 $isMidtrans = $data['payment_method'] === 'midtrans';
                 $isCredit = $data['payment_method'] === 'credit';
                 $paid = (int) ($data['amount_received'] ?? 0);
@@ -93,6 +105,7 @@ class CheckoutService
                     'transaction_number' => 'POS-'.now($settings->timezone)->format('Ymd').'-'.Str::upper(Str::ulid()),
                     'cashier_id' => $actor->id, 'customer_id' => $isCredit ? $data['customer_id'] : null, 'draft_id' => $draft?->id, 'status' => $isMidtrans ? 'pending' : 'completed', 'subtotal' => $subtotal,
                     'discount_amount' => $discount, 'tax_rate' => $settings->tax_rate, 'tax_amount' => $tax,
+                    'cost_total' => $costTotal,
                     'grand_total' => $total, 'payment_method' => $data['payment_method'],
                     'amount_received' => ($isMidtrans || $isCredit) ? 0 : $paid, 'change_amount' => ($isMidtrans || $isCredit) ? 0 : $paid - $total,
                     'idempotency_key' => $data['idempotency_key'], 'completed_at' => $isMidtrans ? null : now(),
@@ -112,7 +125,7 @@ class CheckoutService
                     $before = $product->stock_qty;
                     $transaction->items()->create([
                         'product_id' => $id, 'category_id' => $product->category_id, 'product_name' => $product->name, 'product_sku' => $product->sku,
-                        'unit_name' => $product->unit->symbol, 'unit_price' => $product->sell_price,
+                        'unit_name' => $product->unit->symbol, 'unit_price' => $product->sell_price, 'unit_cost' => $product->cost_price,
                         'qty' => $qty, 'line_total' => $product->sell_price * $qty,
                     ]);
                     $product->stock_qty = $before - $qty;

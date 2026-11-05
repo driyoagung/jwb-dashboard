@@ -21,19 +21,13 @@ class MidtransPaymentService
             return $transaction;
         }
 
-        return Cache::lock('midtrans-start-'.$transaction->id, 25)->block(10, function () use ($transaction): PosTransaction {
+        return Cache::lock('midtrans-start-'.$transaction->id, 90)->block(10, function () use ($transaction): PosTransaction {
             $transaction->refresh();
             if ($transaction->status !== 'pending' || $transaction->midtrans_snap_token) {
                 return $transaction;
             }
 
-            try {
-                $session = $this->gateway->create($transaction->loadMissing('cashier'));
-            } catch (Throwable $exception) {
-                $transaction->update(['midtrans_status' => 'initiation_error']);
-                throw $exception;
-            }
-            $transaction->update(['midtrans_redirect_url' => $session['url'], 'midtrans_snap_token' => $session['token'], 'midtrans_status' => 'pending']);
+            $this->createSession($transaction);
 
             return $transaction;
         });
@@ -49,6 +43,67 @@ class MidtransPaymentService
         if ($status === null) {
             return $transaction;
         }
+
+        return $this->applyStatus($transaction, $status);
+    }
+
+    public function cancel(PosTransaction $transaction): PosTransaction
+    {
+        return Cache::lock('midtrans-start-'.$transaction->id, 90)->block(10, function () use ($transaction): PosTransaction {
+            $transaction->refresh();
+            if ($transaction->payment_method !== 'midtrans' || $transaction->status !== 'pending') {
+                return $transaction;
+            }
+            $status = $this->gateway->status($transaction);
+            if ($status !== null) {
+                $this->applyStatus($transaction, $status);
+                if ($transaction->status !== 'pending') {
+                    return $transaction;
+                }
+            } else {
+                // Recover an unreturned token before closing the payable Snap session.
+                if (! $transaction->midtrans_snap_token) {
+                    $this->createSession($transaction);
+                }
+                $closed = $this->gateway->cancelSession($transaction);
+                $status = $this->gateway->status($transaction);
+                if ($status === null) {
+                    if (! $closed) {
+                        throw new RuntimeException('Pembayaran sedang diproses. Stok tetap ditahan; cek status kembali.');
+                    }
+                    $this->release($transaction, 'cancel');
+
+                    return $transaction->refresh();
+                }
+                $this->applyStatus($transaction, $status);
+                if ($transaction->status !== 'pending') {
+                    return $transaction;
+                }
+            }
+            $this->gateway->cancel($transaction);
+            $this->check($transaction);
+            if ($transaction->status === 'pending') {
+                throw new RuntimeException('Status pembatalan belum tersedia. Stok tetap ditahan; cek status kembali.');
+            }
+
+            return $transaction;
+        });
+    }
+
+    private function createSession(PosTransaction $transaction): void
+    {
+        try {
+            $session = $this->gateway->create($transaction->loadMissing('cashier'));
+        } catch (Throwable $exception) {
+            $transaction->update(['midtrans_status' => 'initiation_error']);
+            throw $exception;
+        }
+        $transaction->update(['midtrans_redirect_url' => $session['url'], 'midtrans_snap_token' => $session['token'], 'midtrans_status' => 'pending']);
+    }
+
+    /** @param array<string, mixed> $status */
+    private function applyStatus(PosTransaction $transaction, array $status): PosTransaction
+    {
         $this->validateStatus($transaction, $status);
         $remoteStatus = (string) $status['transaction_status'];
         $fraudStatus = (string) ($status['fraud_status'] ?? '');

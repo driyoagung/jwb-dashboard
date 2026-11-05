@@ -16,8 +16,24 @@ class DatabaseSeederTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_client_seeder_has_price_history_and_cost_snapshots_without_credit_or_customers(): void
+    {
+        config(['pos.features.customers' => false, 'pos.features.credit' => false]);
+        Storage::fake('public');
+        $this->seed(DatabaseSeeder::class);
+        $this->assertDatabaseCount('price_histories', 64);
+        $this->assertDatabaseCount('customers', 0);
+        $this->assertDatabaseCount('receivables', 0);
+        $this->assertSame(0, PosTransaction::whereIn('payment_method', ['credit', 'other'])->count());
+        $this->assertSame(0, PosTransaction::whereNull('cost_total')->count());
+        foreach (PosTransaction::with('items')->get() as $sale) {
+            $this->assertSame($sale->cost_total, $sale->items->sum(fn ($item) => $item->unit_cost * $item->qty));
+        }
+    }
+
     public function test_demo_seeder_populates_related_pos_data_without_duplicating_it(): void
     {
+        config(['pos.features.customers' => true, 'pos.features.credit' => true]);
         Storage::fake('public');
         $this->seed(DatabaseSeeder::class);
 
@@ -47,7 +63,7 @@ class DatabaseSeederTest extends TestCase
             $this->assertSame($product->stock_qty, StockMovement::query()->where('product_id', $product->id)->sum('delta_qty'));
         }
 
-        $counts = collect(['users', 'products', 'transactions', 'transaction_items', 'stock_movements', 'transaction_drafts', 'customers', 'receivables', 'receivable_payments'])
+        $counts = collect(['price_histories', 'users', 'products', 'transactions', 'transaction_items', 'stock_movements', 'transaction_drafts', 'customers', 'receivables', 'receivable_payments'])
             ->mapWithKeys(static fn (string $table): array => [$table => DB::table($table)->count()]);
         Product::query()->where('sku', 'DEMO-001')->update(['image_path' => 'products/custom.png']);
         Product::query()->where('sku', 'DEMO-002')->update(['image_path' => null]);

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\StoreReceivablePaymentRequest;
 use App\Models\Receivable;
 use App\Models\ReceivablePayment;
+use App\Models\StoreSetting;
 use App\Services\PosNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,15 +25,16 @@ class ReceivableController extends Controller
         ]);
         $sort = $data['sort'] ?? 'created_at';
         $direction = $data['direction'] ?? 'desc';
+        $storeDate = now(StoreSetting::current()->timezone)->toDateString();
         $receivables = Receivable::query()->with(['customer', 'transaction'])
             ->when($data['q'] ?? null, fn ($query, $q) => $query->where(fn ($query) => $query->whereHas('customer', fn ($query) => $query->where('name', 'like', '%'.$q.'%')->orWhere('phone', 'like', '%'.$q.'%'))->orWhereHas('transaction', fn ($query) => $query->where('transaction_number', 'like', '%'.$q.'%'))))
-            ->when(($data['status'] ?? null) === 'overdue', fn ($query) => $query->where('status', '!=', 'paid')->whereDate('due_date', '<', today()))
+            ->when(($data['status'] ?? null) === 'overdue', fn ($query) => $query->where('status', '!=', 'paid')->whereDate('due_date', '<', $storeDate))
             ->when(isset($data['status']) && $data['status'] !== 'overdue', fn ($query) => $query->where('status', $data['status']))
             ->when($sort === 'balance', fn ($query) => $query->orderByRaw('total_amount - paid_amount '.$direction), fn ($query) => $query->orderBy($sort, $direction))
             ->orderByDesc('id')->paginate(15)->withQueryString();
         $outstanding = Receivable::query()->where('status', '!=', 'paid')->selectRaw('COALESCE(SUM(total_amount - paid_amount), 0) as balance')->value('balance');
 
-        return view('pos.receivables.index', compact('receivables', 'outstanding'));
+        return view('pos.receivables.index', compact('receivables', 'outstanding', 'storeDate'));
     }
 
     public function show(Receivable $receivable): View
@@ -40,6 +42,7 @@ class ReceivableController extends Controller
         return view('pos.receivables.show', [
             'receivable' => $receivable->load(['customer', 'transaction', 'payments.user']),
             'key' => (string) Str::uuid(),
+            'zone' => StoreSetting::current()->timezone,
         ]);
     }
 

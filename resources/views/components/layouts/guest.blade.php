@@ -4,7 +4,7 @@
 <head>
     <x-layouts.head :title="$title" />
 </head>
-<body class="font-sans text-sm antialiased">
+<body data-pos-clear-cart-user="{{ session('pos_clear_cart_user') }}" class="font-sans text-sm antialiased">
 <main id="page-root">
     {{ $slot }}
 </main>

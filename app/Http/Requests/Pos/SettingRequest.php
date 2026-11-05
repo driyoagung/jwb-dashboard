@@ -21,6 +21,9 @@ class SettingRequest extends FormRequest
             'draft_expiry_hours' => ['required', 'integer', 'between:1,720'],
             'max_active_drafts' => ['required', 'integer', 'between:1,100'],
             'timezone' => ['required', Rule::in(['Asia/Jakarta', 'Asia/Makassar', 'Asia/Jayapura'])],
+            'manual_transfer_provider' => ['nullable', 'string', 'max:64'],
+            'manual_transfer_number' => ['nullable', 'string', 'max:100'],
+            'manual_transfer_name' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

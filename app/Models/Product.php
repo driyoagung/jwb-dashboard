@@ -37,4 +37,14 @@ class Product extends Model
     {
         return $this->hasMany(TransactionItem::class);
     }
+
+    public function priceHistories(): HasMany
+    {
+        return $this->hasMany(PriceHistory::class);
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path ? route('pos.products.image', ['product' => $this->id, 'v' => substr(sha1($this->image_path), 0, 12)]) : null;
+    }
 }

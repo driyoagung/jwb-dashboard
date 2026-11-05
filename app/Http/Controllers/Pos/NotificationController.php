@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
 use App\Models\PosNotification;
+use App\Models\StoreSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,7 +39,7 @@ class NotificationController extends Controller
             ->when($filters['status'] ?? null, fn ($query, $status) => $status === 'read' ? $query->whereNotNull('read_at') : $query->whereNull('read_at'))
             ->latest('id')->paginate(20)->withQueryString();
 
-        return view('pos.notifications', compact('notifications'));
+        return view('pos.notifications', ['notifications' => $notifications, 'zone' => StoreSetting::current()->timezone]);
     }
 
     public function read(Request $request, PosNotification $notification): RedirectResponse

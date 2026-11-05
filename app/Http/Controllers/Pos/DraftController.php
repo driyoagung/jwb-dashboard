@@ -27,7 +27,7 @@ class DraftController extends Controller
                 : $query->where('status', $status)->when($status === 'active', fn ($query) => $query->where('expires_at', '>', now())))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
-        return view('pos.drafts.index', compact('drafts'));
+        return view('pos.drafts.index', ['drafts' => $drafts, 'zone' => StoreSetting::current()->timezone]);
     }
 
     public function store(CartRequest $request, PosNotifier $notifier): RedirectResponse
@@ -49,7 +49,8 @@ class DraftController extends Controller
             $notifier->draft($draft, 'disimpan');
         }, 3);
 
-        return redirect()->route('pos.drafts.index')->with('status', 'Draft berhasil disimpan.');
+        return redirect()->route('pos.drafts.index')->with('status', 'Draft berhasil disimpan.')
+            ->with('pos_clear_cart_keys', ['pos-cart-'.$request->user()->id]);
     }
 
     public function show(Request $request, TransactionDraft $draft): View
@@ -70,7 +71,8 @@ class DraftController extends Controller
         $draft->update(['payload_json' => ['items' => $this->snapshot($data['items']), 'discount_amount' => (int) ($data['discount_amount'] ?? 0)]]);
         $notifier->draft($draft, 'diperbarui');
 
-        return redirect()->route('pos.drafts.show', $draft)->with('status', 'Draft diperbarui.');
+        return redirect()->route('pos.drafts.show', $draft)->with('status', 'Draft diperbarui.')
+            ->with('pos_clear_cart_keys', ['pos-cart-'.$request->user()->id, 'pos-draft-'.$draft->id.'-'.$request->user()->id]);
     }
 
     public function destroy(Request $request, TransactionDraft $draft, PosNotifier $notifier): RedirectResponse

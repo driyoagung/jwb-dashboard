@@ -7,6 +7,13 @@
             <x-ui.field label="Alamat" name="address" class="md:col-span-2"><x-ui.textarea name="address" :value="$settings->address" placeholder="Alamat lengkap toko" /></x-ui.field>
             <x-ui.field label="Footer struk" name="receipt_footer" class="md:col-span-2"><x-ui.textarea name="receipt_footer" :value="$settings->receipt_footer" placeholder="Pesan penutup pada struk" /></x-ui.field>
         </div></x-ui.card>
+        <x-ui.card title="Tujuan transfer manual" description="Isi rekening atau e-wallet yang akan ditampilkan kepada pembeli saat kasir memilih Transfer.">
+            <div class="grid gap-5 md:grid-cols-3">
+                <x-ui.field label="Bank atau e-wallet" name="manual_transfer_provider"><x-ui.input name="manual_transfer_provider" :value="$settings->manual_transfer_provider" placeholder="Contoh: DANA" /></x-ui.field>
+                <x-ui.field label="Nomor tujuan" name="manual_transfer_number"><x-ui.input name="manual_transfer_number" :value="$settings->manual_transfer_number" placeholder="Masukkan nomor rekening atau DANA" /></x-ui.field>
+                <x-ui.field label="Nama penerima" name="manual_transfer_name"><x-ui.input name="manual_transfer_name" :value="$settings->manual_transfer_name" placeholder="Nama pemilik rekening" /></x-ui.field>
+            </div>
+        </x-ui.card>
         <x-ui.card title="Aturan transaksi"><div class="grid gap-5 md:grid-cols-2">
             <x-ui.field label="Pajak (%)" name="tax_rate"><x-ui.input name="tax_rate" type="number" min="0" max="100" step="0.01" :value="$settings->tax_rate" placeholder="Contoh: 11" required /></x-ui.field>
             <x-ui.field label="Kedaluwarsa draft (jam)" name="draft_expiry_hours"><x-ui.input name="draft_expiry_hours" type="number" min="1" max="720" :value="$settings->draft_expiry_hours" placeholder="Contoh: 24" required data-grouped-number /></x-ui.field>

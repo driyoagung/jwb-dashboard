@@ -135,10 +135,13 @@
     function show(file) {
       clear(false);
       if (!file) return;
-      var validType = ['image/png', 'image/jpeg', 'application/pdf'].includes(file.type);
+      var accepted = input.accept.split(',').map(function (type) { return type.trim().toLowerCase(); }).filter(Boolean);
+      var validType = !accepted.length || accepted.some(function (type) {
+        return type.startsWith('.') ? file.name.toLowerCase().endsWith(type) : type.endsWith('/*') ? file.type.startsWith(type.slice(0, -1)) : file.type === type;
+      });
       var maxBytes = Number(root.dataset.maxMb || 5) * 1024 * 1024;
       if (!validType || file.size > maxBytes) {
-        error.textContent = !validType ? 'Gunakan berkas PNG, JPG, atau PDF.' : 'Ukuran berkas melebihi batas ' + root.dataset.maxMb + ' MB.';
+        error.textContent = !validType ? 'Format berkas tidak didukung. Pilih sesuai format yang tercantum.' : 'Ukuran berkas melebihi batas ' + root.dataset.maxMb + ' MB.';
         error.hidden = false; input.value = ''; return;
       }
       root.querySelector('[data-file-name]').textContent = file.name;

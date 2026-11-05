@@ -1,23 +1,57 @@
 import { numberValue, setNumberValue } from './grouped-numbers';
 import { cameraErrorMessage, refreshVideoDeviceOptions, scanBarcodeVideo } from './barcode-scanner';
+import { clearCartKeys } from './cart-storage';
 
 const root = document.querySelector('[data-pos-cart]');
 
 if (root) {
     const storageKey = root.dataset.storageKey;
+    const panel = root.closest('.card');
     const rows = root.querySelector('[data-cart-rows]');
     const inputs = root.querySelector('[data-cart-inputs]');
     const form = root.querySelector('[data-cart-form]');
     const discount = root.querySelector('[data-cart-discount]');
     const paid = root.querySelector('[data-cart-paid]');
     const modal = root.querySelector('#cashier-payment');
+    const manualModal = root.querySelector('#manual-payment-confirmation');
+    const manualConfirmedInput = root.querySelector('[data-manual-confirmed]');
     const methods = [...root.querySelectorAll('[data-cart-method]')];
+    const quoteInput = root.querySelector('[data-cart-quote-hash]');
+    const syncStatus = panel.querySelector('[data-cart-sync-status]');
     const money = value => `Rp ${Math.max(0, value).toLocaleString('id-ID')}`;
     const selectedMethod = () => methods.find(input => input.checked)?.value || 'cash';
     let currentGrand = 0;
+    let manualConfirmed = false;
+    let checkoutBusy = false;
+    let syncing = false;
+    let quoteSequence = 0;
+    let cartRevision = 0;
     let cart = [];
-    try { cart = JSON.parse(localStorage.getItem(storageKey) || root.dataset.initialCart || '[]'); } catch { cart = []; }
+    try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
+        cart = Array.isArray(saved) ? saved : saved?.items || JSON.parse(root.dataset.initialCart || '[]');
+        if (saved && !Array.isArray(saved) && saved.discount_amount !== undefined) {
+            setNumberValue(discount, saved.discount_amount);
+        }
+    } catch { cart = JSON.parse(root.dataset.initialCart || '[]'); }
     if (!Array.isArray(cart)) cart = [];
+
+    let fitFrame;
+    function fitCartPanel() {
+        cancelAnimationFrame(fitFrame);
+        fitFrame = requestAnimationFrame(() => {
+            const viewportHeight = window.visualViewport?.height || window.innerHeight;
+            const top = window.innerWidth >= 1024 ? Math.max(0, panel.getBoundingClientRect().top) : 80;
+            const available = Math.max(200, viewportHeight - top - 16);
+            const headerHeight = panel.querySelector('.card-header').offsetHeight;
+            panel.style.maxHeight = `${available}px`;
+            form.style.maxHeight = `${Math.max(96, Math.min(viewportHeight * 0.65, available - headerHeight - 88))}px`;
+        });
+    }
+    window.addEventListener('scroll', fitCartPanel, { passive: true });
+    window.addEventListener('resize', fitCartPanel);
+    window.visualViewport?.addEventListener('resize', fitCartPanel);
+    new ResizeObserver(fitCartPanel).observe(panel.querySelector('.card-header'));
 
     function refreshTotals() {
         const subtotal = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
@@ -34,10 +68,18 @@ if (root) {
             paid.value = grand.toLocaleString('id-ID');
             paid.groupedRawInput.value = String(grand);
         }
-        root.querySelector('[data-cart-change]').textContent = money(selectedMethod() === 'cash' ? numberValue(paid) - grand : 0);
-        root.querySelector('[data-cart-pay-open]').disabled = cart.length === 0;
-        root.querySelector('[data-cart-submit]').disabled = cart.length === 0;
-        root.querySelector('[data-cart-draft]').disabled = cart.length === 0;
+        const shortfall = selectedMethod() === 'cash' ? Math.max(0, grand - numberValue(paid)) : 0;
+        root.querySelector('[data-cart-change-label]').textContent = shortfall > 0 ? 'Kurang bayar' : 'Kembalian';
+        const change = root.querySelector('[data-cart-change]');
+        change.textContent = money(shortfall > 0 ? shortfall : selectedMethod() === 'cash' ? numberValue(paid) - grand : 0);
+        change.classList.toggle('text-danger', shortfall > 0);
+        root.querySelector('[data-cart-shortfall]').hidden = shortfall === 0;
+        root.querySelector('[data-cart-shortfall-message]').textContent = `Pembayaran masih kurang ${money(shortfall)}. Tambahkan nominal sebelum memproses transaksi.`;
+        panel.querySelector('[data-cart-count]').textContent = `${cart.length} jenis produk · ${cart.reduce((sum, item) => sum + Number(item.qty), 0).toLocaleString('id-ID')} barang`;
+        root.querySelector('[data-cart-pay-open]').disabled = cart.length === 0 || checkoutBusy;
+        root.querySelector('[data-cart-submit]').disabled = cart.length === 0 || shortfall > 0 || syncing || checkoutBusy;
+        root.querySelector('[data-cart-submit-label]').textContent = syncing ? 'Memeriksa...' : checkoutBusy ? 'Memproses...' : 'Proses pembayaran';
+        root.querySelector('[data-cart-draft]').disabled = cart.length === 0 || checkoutBusy;
     }
 
     function icon(name) {
@@ -65,7 +107,10 @@ if (root) {
                 fallback.append(icon('package')); product.append(fallback);
             }
             const productName = document.createElement('span'); productName.className = 'min-w-0 break-words font-medium'; productName.textContent = item.name;
-            product.append(productName);
+            const productInfo = document.createElement('div'); productInfo.className = 'min-w-0';
+            const stock = document.createElement('span'); stock.className = 'block text-xs text-muted-foreground';
+            stock.textContent = `Stok tersedia: ${Number(item.stock).toLocaleString('id-ID')}`;
+            productInfo.append(productName, stock); product.append(productInfo);
             const details = document.createElement('div'); details.className = 'mt-3 flex flex-wrap items-center justify-between gap-3';
             let qtyField;
             const controls = document.createElement('div'); controls.className = 'flex items-center gap-1';
@@ -78,17 +123,17 @@ if (root) {
             input.addEventListener('input', () => { const raw = input.value.replace(/\D/g, ''); input.value = raw ? Number(raw).toLocaleString('id-ID') : ''; });
             const increase = document.createElement('button'); increase.type = 'button';
             increase.className = 'btn btn-outline btn-icon btn-sm'; increase.setAttribute('aria-label', `Tambah jumlah ${item.name}`);
-            increase.disabled = qty >= Number(item.stock); increase.append(icon('plus'));
+            increase.disabled = qty >= Math.min(1000, Number(item.stock)); increase.append(icon('plus'));
             controls.append(decrease, input, increase);
             const subtotal = document.createElement('div'); subtotal.className = 'text-right';
             const subtotalLabel = document.createElement('span'); subtotalLabel.className = 'block text-xs text-muted-foreground'; subtotalLabel.textContent = 'Subtotal';
             const total = document.createElement('strong'); total.className = 'tabular-nums'; total.textContent = money(Number(item.price) * qty);
             subtotal.append(subtotalLabel, total);
             const setQty = value => {
-                item.qty = Math.max(1, Math.min(Number(item.stock), value));
+                item.qty = Math.max(1, Math.min(1000, Number(item.stock), value));
                 input.value = Number(item.qty).toLocaleString('id-ID');
                 decrease.disabled = item.qty <= 1;
-                increase.disabled = item.qty >= Number(item.stock);
+                increase.disabled = item.qty >= Math.min(1000, Number(item.stock));
                 total.textContent = money(Number(item.price) * item.qty);
                 qtyField.value = String(item.qty);
                 persist(false);
@@ -109,9 +154,66 @@ if (root) {
         });
         root.querySelector('[data-cart-empty]').hidden = cart.length > 0;
         refreshTotals();
+        fitCartPanel();
     }
 
-    function persist(redraw = true) { localStorage.setItem(storageKey, JSON.stringify(cart)); if (redraw) render(); else refreshTotals(); }
+    function saveState() {
+        try { localStorage.setItem(storageKey, JSON.stringify({ items: cart, discount_amount: numberValue(discount) })); } catch {}
+    }
+    function persist(redraw = true) {
+        cartRevision++;
+        quoteInput.disabled = true;
+        quoteInput.value = '';
+        manualConfirmed = false;
+        manualConfirmedInput.disabled = true;
+        saveState();
+        if (redraw) render(); else refreshTotals();
+    }
+    function notice(message) {
+        syncStatus.textContent = message;
+    }
+    async function syncCart() {
+        if (!cart.length) return { can_checkout: false, changed: false, issues: ['Keranjang kosong.'] };
+        const sequence = ++quoteSequence;
+        const revision = cartRevision;
+        syncing = true;
+        syncStatus.textContent = 'Memeriksa harga dan stok...';
+        refreshTotals();
+        try {
+            const response = await fetch(root.dataset.quoteUrl, {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                body: JSON.stringify({ items: cart.map(item => ({ product_id: item.id, qty: item.qty })), discount_amount: numberValue(discount) }),
+            });
+            const quote = await response.json();
+            if (!response.ok) throw new Error(Object.values(quote.errors || {})[0]?.[0] || 'Harga dan stok belum dapat diperiksa. Coba lagi.');
+            if (sequence !== quoteSequence || revision !== cartRevision) throw new Error('Keranjang berubah saat diperiksa. Periksa kembali sebelum membayar.');
+            let changed = Number(root.dataset.taxRate) !== Number(quote.tax_rate);
+            for (const product of quote.items) {
+                const item = cart.find(entry => Number(entry.id) === Number(product.id));
+                if (!item) continue;
+                if (product.price !== null) {
+                    changed ||= Number(item.price) !== Number(product.price);
+                    item.price = product.price;
+                }
+                item.stock = product.stock;
+                item.name = product.name || item.name;
+                item.image = product.image;
+            }
+            root.dataset.taxRate = quote.tax_rate;
+            quoteInput.value = quote.quote_hash;
+            quoteInput.disabled = false;
+            saveState();
+            render();
+            notice(quote.issues.length ? 'Keranjang perlu disesuaikan. Buka pembayaran untuk melihat rinciannya.' : changed ? 'Harga atau pajak diperbarui. Periksa total terbaru sebelum membayar.' : 'Harga dan stok sudah diperiksa.');
+            return { ...quote, changed };
+        } catch (error) {
+            if (sequence === quoteSequence) syncStatus.textContent = 'Pemeriksaan gagal. Coba lagi melalui pembayaran.';
+            throw error;
+        } finally {
+            if (sequence === quoteSequence) { syncing = false; refreshTotals(); }
+        }
+    }
     function addProduct(product) {
         if (Number(product.stock) < 1) {
             window.App.toast({ title: 'Stok habis', description: `${product.name} tidak dapat ditambahkan.`, tone: 'warning' });
@@ -119,7 +221,7 @@ if (root) {
         }
         const found = cart.find(item => Number(item.id) === Number(product.id));
         if (found) {
-            if (Number(found.qty) >= Number(product.stock)) {
+            if (Number(found.qty) >= Math.min(1000, Number(product.stock))) {
                 window.App.toast({ title: 'Stok tidak mencukupi', description: `${product.name} sudah mencapai stok tersedia.`, tone: 'warning' });
                 return false;
             }
@@ -132,13 +234,19 @@ if (root) {
         return true;
     }
     function showError(message) {
+        manualConfirmed = false;
+        manualConfirmedInput.disabled = true;
         root.querySelector('[data-cart-error-message]').textContent = message;
         root.querySelector('[data-cart-error]').hidden = false;
+        if (!modal.open && !manualModal.open) modal.showModal();
     }
     function syncPayment() {
+        manualConfirmed = false;
+        manualConfirmedInput.disabled = true;
         const online = selectedMethod() === 'midtrans' || selectedMethod() === 'credit';
         const cash = selectedMethod() === 'cash';
-        root.querySelector('[data-cart-credit-group]').hidden = selectedMethod() !== 'credit';
+        const creditGroup = root.querySelector('[data-cart-credit-group]');
+        if (creditGroup) creditGroup.hidden = selectedMethod() !== 'credit';
         paid.disabled = online;
         paid.groupedRawInput.disabled = online;
         paid.required = !online;
@@ -146,6 +254,21 @@ if (root) {
         root.querySelector('[data-cart-paid-group]').hidden = online;
         root.querySelector('[data-cart-presets]').hidden = !cash;
         render();
+    }
+
+    async function openManualPayment(method, reviewedQuote = null) {
+        manualConfirmed = false;
+        manualConfirmedInput.disabled = true;
+        try {
+            const quote = reviewedQuote || await syncCart();
+            if (!quote.can_checkout) { showError(quote.issues.join(' ')); return; }
+            if (selectedMethod() !== method || !modal.open) return;
+            root.querySelector('[data-manual-total]').textContent = money(currentGrand);
+            root.querySelector('[data-manual-transfer]').hidden = method !== 'transfer';
+            root.querySelector('[data-manual-qris]').hidden = method !== 'qris';
+            modal.close();
+            manualModal.showModal();
+        } catch (error) { showError(error.message); }
     }
 
     document.addEventListener('click', event => {
@@ -267,20 +390,83 @@ if (root) {
     });
     cameraDialog.addEventListener('close', stopCamera);
     root.querySelectorAll('[data-pay-preset]').forEach(button => button.addEventListener('click', () => setNumberValue(paid, button.dataset.payPreset)));
-    root.querySelector('[data-cart-pay-open]').addEventListener('click', () => {
-        if (selectedMethod() === 'cash' && !numberValue(paid)) setNumberValue(paid, currentGrand);
+    root.querySelector('[data-cart-pay-open]').addEventListener('click', async () => {
+        root.querySelector('[data-cart-error]').hidden = true;
+        try {
+            const quote = await syncCart();
+            if (!quote.can_checkout) showError(quote.issues.join(' '));
+            if (selectedMethod() === 'cash' && !numberValue(paid)) setNumberValue(paid, currentGrand);
+        } catch (error) { showError(error.message); }
     });
-    discount.addEventListener('input', refreshTotals);
+    discount.addEventListener('input', () => persist(false));
     paid.addEventListener('input', refreshTotals);
-    methods.forEach(input => input.addEventListener('change', syncPayment));
+    methods.forEach(input => {
+        input.addEventListener('change', syncPayment);
+        input.addEventListener('click', () => {
+            if (input.checked && ['transfer', 'qris'].includes(input.value)) void openManualPayment(input.value);
+        });
+    });
+    root.querySelector('[data-cart-reconcile]').addEventListener('click', async () => {
+        const button = root.querySelector('[data-cart-reconcile]');
+        button.disabled = true;
+        try {
+            await syncCart();
+            cart = cart.filter(item => Number(item.stock) > 0).map(item => ({ ...item, qty: Math.min(Number(item.qty), Number(item.stock), 1000) }));
+            const subtotal = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.qty), 0);
+            if (numberValue(discount) > subtotal) setNumberValue(discount, subtotal);
+            persist();
+            root.querySelector('[data-cart-error]').hidden = true;
+            if (cart.length) {
+                const quote = await syncCart();
+                if (!quote.can_checkout) showError(quote.issues.join(' '));
+                else notice('Stok dan harga sudah disesuaikan. Periksa kembali jumlah barang dan total pembayaran.');
+            } else { modal.close(); notice('Produk tidak tersedia sudah dihapus. Tambahkan produk lain untuk melanjutkan.'); }
+        } catch (error) { showError(error.message); }
+        finally { button.disabled = false; }
+    });
+    root.querySelector('[data-manual-back]').addEventListener('click', () => manualModal.close());
+    manualModal.addEventListener('close', () => {
+        if (!manualConfirmed && !modal.open) modal.showModal();
+    });
+    root.querySelector('[data-manual-confirm]').addEventListener('click', () => {
+        manualConfirmed = true;
+        manualConfirmedInput.disabled = false;
+        manualModal.close();
+        form.requestSubmit(root.querySelector('[data-cart-submit]'));
+    });
 
     form.addEventListener('submit', async event => {
         if (cart.length === 0) { event.preventDefault(); return; }
         if (event.submitter?.hasAttribute('data-cart-draft')) return;
         event.preventDefault();
+        if (checkoutBusy) return;
+        const method = selectedMethod();
+        let reviewedQuote;
+        checkoutBusy = true;
+        refreshTotals();
+        try {
+            const quote = await syncCart();
+            reviewedQuote = quote;
+            if (!quote.can_checkout) { showError(quote.issues.join(' ')); return; }
+            if (quote.changed) {
+                manualConfirmed = false;
+                manualConfirmedInput.disabled = true;
+                showError('Harga atau pajak berubah. Periksa total terbaru dan konfirmasi pembayaran kembali.');
+                return;
+            }
+            if (method === 'cash' && numberValue(paid) < currentGrand) {
+                showError(`Pembayaran masih kurang ${money(currentGrand - numberValue(paid))}.`);
+                return;
+            }
+        } catch (error) { showError(error.message); return; }
+        finally { checkoutBusy = false; refreshTotals(); }
+        if ((method === 'transfer' || method === 'qris') && !manualConfirmed) {
+            await openManualPayment(method, reviewedQuote);
+            return;
+        }
         root.querySelector('[data-cart-error]').hidden = true;
-        const submit = root.querySelector('[data-cart-submit]');
-        submit.disabled = true;
+        checkoutBusy = true;
+        refreshTotals();
         let checkoutUrl = null;
         try {
             if (selectedMethod() === 'midtrans' && !window.snap?.pay) {
@@ -294,7 +480,7 @@ if (root) {
             const result = await response.json();
             if (!response.ok) throw new Error(Object.values(result.errors || {})[0]?.[0] || result.message || 'Checkout gagal diproses.');
             checkoutUrl = result.transaction_url;
-            try { localStorage.removeItem(storageKey); } catch {}
+            clearCartKeys(result.clear_cart_keys || [storageKey]);
             if (!result.snap_token) { window.location.assign(result.transaction_url); return; }
             modal.close();
             const showResult = async () => {
@@ -316,12 +502,42 @@ if (root) {
             });
         } catch (error) {
             if (checkoutUrl) { window.location.assign(checkoutUrl); return; }
+            if (method === 'transfer' || method === 'qris') {
+                manualConfirmed = false;
+                manualConfirmedInput.disabled = true;
+                if (!modal.open) modal.showModal();
+            }
             showError(error.message || 'Checkout gagal diproses.');
         } finally {
-            submit.disabled = false;
+            checkoutBusy = false;
+            refreshTotals();
         }
     });
 
     syncPayment();
+    if (cart.length) void syncCart().catch(() => {
+        if (quoteInput.disabled) notice('Harga dan stok belum diperiksa. Buka pembayaran untuk mencoba lagi.');
+    });
     barcodeInput.focus({ preventScroll: true });
+
+    function clearDisplayedCart() {
+        cart = [];
+        cartRevision++;
+        quoteSequence++;
+        syncing = false;
+        quoteInput.disabled = true;
+        manualConfirmed = false;
+        manualConfirmedInput.disabled = true;
+        discount.value = '0';
+        discount.groupedRawInput.value = '0';
+        try { localStorage.removeItem(storageKey); } catch {}
+        render();
+    }
+    window.addEventListener('storage', event => {
+        if (event.key === storageKey && event.newValue === null || event.key === null) clearDisplayedCart();
+    });
+    window.addEventListener('pageshow', event => {
+        if (!event.persisted) return;
+        try { if (!localStorage.getItem(storageKey)) clearDisplayedCart(); } catch {}
+    });
 }

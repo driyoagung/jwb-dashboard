@@ -6,7 +6,9 @@ use App\Models\Customer;
 use App\Models\PosTransaction;
 use App\Models\Product;
 use App\Models\Receivable;
+use App\Models\StoreSetting;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -14,6 +16,35 @@ use Tests\TestCase;
 class ReceivableFeatureTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['pos.features.customers' => true, 'pos.features.credit' => true]);
+    }
+
+    public function test_due_today_badge_and_overdue_filter_use_the_store_calendar(): void
+    {
+        $this->seed();
+        StoreSetting::current()->update(['timezone' => 'Asia/Jakarta']);
+        $this->travelTo(Carbon::parse('2026-10-29 17:30:00', 'UTC'));
+        Receivable::query()->update(['due_date' => null]);
+        [$yesterday, $today] = Receivable::query()->limit(2)->get()->all();
+        $yesterday->update(['status' => 'open', 'due_date' => '2026-10-29']);
+        $today->update(['status' => 'open', 'due_date' => '2026-10-30']);
+        $this->assertTrue($yesterday->isOverdue('2026-10-30'));
+        $this->assertFalse($today->isOverdue('2026-10-30'));
+        $cashier = User::where('role', 'cashier')->firstOrFail();
+        $response = $this->actingAs($cashier)->get(route('pos.receivables.index', ['status' => 'overdue']))->assertOk();
+        $this->assertSame([$yesterday->id], $response->viewData('receivables')->pluck('id')->all());
+        $this->get(route('pos.receivables.index'))->assertOk()->assertViewHas('storeDate', '2026-10-30');
+        $product = Product::where('sku', 'DEMO-001')->firstOrFail();
+        $payload = ['idempotency_key' => (string) Str::uuid(), 'items' => [['product_id' => $product->id, 'qty' => 1]], 'payment_method' => 'credit', 'customer_id' => $today->customer_id, 'due_date' => '2026-10-29'];
+        $this->postJson(route('pos.checkout'), $payload)->assertUnprocessable()->assertJsonValidationErrors('due_date');
+        $payload['due_date'] = '2026-10-30';
+        $this->postJson(route('pos.checkout'), $payload)->assertOk();
+        $this->travelBack();
+    }
 
     public function test_credit_checkout_requires_customer_and_creates_one_receivable(): void
     {

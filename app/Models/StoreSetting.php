@@ -12,9 +12,15 @@ class StoreSetting extends Model
         'draft_expiry_hours' => 24,
         'max_active_drafts' => 20,
         'timezone' => 'Asia/Jakarta',
+        'manual_transfer_provider' => 'DANA',
     ];
 
-    protected $fillable = ['store_name', 'phone', 'address', 'receipt_footer', 'tax_rate', 'draft_expiry_hours', 'max_active_drafts', 'timezone'];
+    protected $fillable = ['store_name', 'phone', 'address', 'receipt_footer', 'tax_rate', 'draft_expiry_hours', 'max_active_drafts', 'timezone', 'manual_transfer_provider', 'manual_transfer_number', 'manual_transfer_name'];
+
+    public function manualTransferConfigured(): bool
+    {
+        return filled($this->manual_transfer_provider) && filled($this->manual_transfer_number) && filled($this->manual_transfer_name);
+    }
 
     protected function casts(): array
     {

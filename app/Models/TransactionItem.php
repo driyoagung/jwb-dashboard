@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TransactionItem extends Model
 {
-    protected $fillable = ['product_id', 'category_id', 'product_name', 'product_sku', 'unit_name', 'unit_price', 'qty', 'line_total'];
+    protected $fillable = ['product_id', 'category_id', 'product_name', 'product_sku', 'unit_name', 'unit_price', 'unit_cost', 'qty', 'line_total'];
+
+    protected function casts(): array
+    {
+        return ['unit_cost' => 'integer'];
+    }
 
     public function transaction(): BelongsTo
     {

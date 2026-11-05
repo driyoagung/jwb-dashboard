@@ -6,6 +6,7 @@ use App\Models\PosNotification;
 use App\Models\ReferenceRecord;
 use App\Models\User;
 use App\Policies\ReferenceRecordPolicy;
+use App\Support\PosFeatures;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -28,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ReferenceRecord::class, ReferenceRecordPolicy::class);
         Gate::define('pos.admin', fn (User $user): bool => $user->isAdmin());
         Gate::define('pos.sell', fn (User $user): bool => $user->is_active && in_array($user->role, ['admin', 'cashier'], true));
+        Gate::define('pos.customers', fn (User $user): bool => PosFeatures::customersEnabled() && $user->can('pos.sell'));
+        Gate::define('pos.credit', fn (User $user): bool => PosFeatures::creditEnabled() && $user->can('pos.sell'));
         View::composer('components.admin.header', function ($view): void {
             $userId = auth()->id();
             $view->with('recentNotifications', $userId

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\PosTransaction;
+use Illuminate\Support\Facades\Http;
 use Midtrans\Config;
 use Midtrans\Snap;
 use Midtrans\Transaction;
@@ -69,6 +70,43 @@ class MidtransGateway
             report($exception);
             throw new RuntimeException('Status Midtrans belum dapat diperiksa. Coba lagi.', previous: $exception);
         }
+    }
+
+    public function cancel(PosTransaction $transaction): void
+    {
+        $this->configure();
+        try {
+            Transaction::cancel($transaction->transaction_number);
+        } catch (Throwable $exception) {
+            report($exception);
+            throw new RuntimeException('Pembatalan Midtrans belum dikonfirmasi. Stok tetap ditahan; cek status atau coba lagi.', previous: $exception);
+        }
+    }
+
+    public function cancelSession(PosTransaction $transaction): bool
+    {
+        $this->configure();
+        $base = config('services.midtrans.is_production') ? 'https://app.midtrans.com' : 'https://app.sandbox.midtrans.com';
+        try {
+            $response = Http::acceptJson()->asJson()->connectTimeout(5)->timeout(15)
+                ->withHeaders(['Authorization' => (string) config('services.midtrans.server_key')])
+                ->post($base.'/snap/v1/transactions/'.rawurlencode($transaction->midtrans_snap_token).'/cancel');
+            if ($response->successful() && is_string($response->json('canceled_at'))) {
+                return true;
+            }
+            $errors = $response->json('error_messages', []);
+            if (is_array($errors) && in_array('token already canceled', $errors, true)) {
+                return true;
+            }
+            if (is_array($errors) && in_array('Transaction is on progress', $errors, true)) {
+                return false;
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+            throw new RuntimeException('Sesi Midtrans belum dapat dibatalkan. Stok tetap ditahan; coba lagi.', previous: $exception);
+        }
+
+        throw new RuntimeException('Pembatalan sesi Midtrans belum dikonfirmasi. Stok tetap ditahan; cek status atau coba lagi.');
     }
 
     private function configure(): void

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pos;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\StockMovement;
+use App\Models\StoreSetting;
 use App\Services\StockService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,6 +42,6 @@ class StockController extends Controller
             ->when($data['q'] ?? null, fn ($query, $q) => $query->whereHas('product', fn ($query) => $query->where('name', 'like', '%'.$q.'%')->orWhere('sku', 'like', '%'.$q.'%')))
             ->orderByDesc('id')->paginate(20)->withQueryString();
 
-        return view('pos.stock.movements', compact('movements'));
+        return view('pos.stock.movements', ['movements' => $movements, 'zone' => StoreSetting::current()->timezone]);
     }
 }
